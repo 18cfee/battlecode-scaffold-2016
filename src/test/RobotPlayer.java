@@ -91,7 +91,6 @@ public class RobotPlayer {
             int south = 0;
 
             Direction d1 = Direction.WEST;
-            Direction d2 = Direction.NORTH_WEST;
             Direction d3 = Direction.NORTH;
             while (true) {
                 try {
@@ -116,7 +115,6 @@ public class RobotPlayer {
                                     roboStart = 3;
                                 }
                                 d1 = directions[roboStart - 1];
-                                d2 = directions[roboStart];
                                 d3 = directions[(roboStart + 1)%8];
                                 break;
                             }
@@ -163,14 +161,10 @@ public class RobotPlayer {
 
                     if (!shouldAttack) {
                         if (rc.isCoreReady()) {
-                            if(rc.canMove(d2) && south < max && west < max){
-                                rc.move(d2);
-                                south++;
-                                west++;
-                            } else if(rc.canMove(d3) && south < max){
+                            if(rc.canMove(d3) && (south + west) < max){
                                 rc.move(d3);
                                 south++;
-                            } else if(rc.canMove(d1) && west < max){
+                            } else if(rc.canMove(d1) && (south + west) < max){
                                 rc.move(d1);
                                 west++;
                             }
