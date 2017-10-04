@@ -54,8 +54,9 @@ public class RobotPlayer {
                             placed = false;
                             for (int i = 0; i < 4; i++) {
                                 // If possible, build in this direction
-                                if(botsBuilt > 3 && rc.canBuild(Direction.NORTH,RobotType.SCOUT)){
-                                    rc.build(Direction.NORTH, RobotType.SCOUT);
+                                Direction a = directions[rand.nextInt(4)*2];
+                                if(botsBuilt%5 == 0 && rc.canBuild((a),RobotType.SCOUT)){
+                                    rc.build(a, RobotType.SCOUT);
                                     placed = true;
                                     botsBuilt++;
                                 } else if (rc.canBuild(dirToBuild, typeToBuild)) {
@@ -92,7 +93,7 @@ public class RobotPlayer {
             }
             int dir = 0;
             int move = 0;
-            int max = 2; // Corner of box to fill with guys
+            int max = 1; // Corner of box to fill with guys
             int west = 0;
             int south = 0;
 
@@ -225,22 +226,42 @@ public class RobotPlayer {
             }
         }else if (rc.getType() == RobotType.SCOUT) {
             Direction current = Direction.NORTH;
+            MapLocation[] aRC = rc.getInitialArchonLocations(myTeam);
+            int lastTimeD = 0;
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
                 try {
                     if (rc.isCoreReady()) {
-                        if(rc.canMove(Direction.NORTH)){
-                            rc.move(Direction.NORTH);
-                        } else if(rc.canMove(Direction.NORTH_WEST)){
-                            rc.move(Direction.NORTH_WEST);
-                        } else if(rc.canMove(Direction.NORTH_EAST)){
-                            rc.move(Direction.NORTH_EAST);
-                        } else if(rc.canMove(Direction.WEST)){
-                            rc.move(Direction.WEST);
-                        }else if(rc.canMove(Direction.EAST)){
-                            rc.move(Direction.EAST);
+                        //Outside of safe areas
+                        int minD = 50;
+                        for(int i = 0; i < aRC.length; i++){
+                            MapLocation spot = aRC[i];
+                            MapLocation now = rc.getLocation();
+                            int xD = Math.abs(spot.x - now.x);
+                            int yD = Math.abs(spot.y - now.y);
+                            int distance = (int)Math.sqrt(xD*xD + yD*yD);
+                            minD = Math.min(minD,distance);
                         }
+                        boolean movingAway = (minD >= lastTimeD);
+                        boolean outOfCircles = (minD > 15);
+                        lastTimeD = minD;
+                        RobotInfo[] infod = rc.senseNearbyRobots(10,enemyTeam);
+                        if(infod.length == 0){
+                            if(rc.canMove(current) &&(outOfCircles || movingAway)) {
+                                rc.move(current);
+                            } else {
+                                current = directions[(rand.nextInt(8))];
+                                for(int i = 0; i < 8;i++){
+                                    if(rc.canMove(current)){
+                                        rc.move(current);
+                                        break;
+                                    }
+                                    current.rotateLeft();
+                                }
+                            }
+                        }
+
                     }
                     Clock.yield();
                 } catch (Exception e) {
