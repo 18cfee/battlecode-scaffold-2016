@@ -55,15 +55,15 @@ public class RobotPlayer {
                         // Check for sufficient parts
                         if (rc.hasBuildRequirements(typeToBuild)) {
                             // Choose a random direction to try to build in
-                            Direction dirToBuild = directions[rand.nextInt(8)];
-                            for (int i = 0; i < 8; i++) {
+                            Direction dirToBuild = directions[(rand.nextInt(4)*2 + 1)];
+                            for (int i = 0; i < 4; i++) {
                                 // If possible, build in this direction
                                 if (rc.canBuild(dirToBuild, typeToBuild)) {
                                     rc.build(dirToBuild, typeToBuild);
                                     break;
                                 } else {
                                     // Rotate the direction to try
-                                    dirToBuild = dirToBuild.rotateLeft();
+                                    dirToBuild = dirToBuild.rotateLeft().rotateLeft();
                                 }
                             }
                         }
@@ -86,12 +86,48 @@ public class RobotPlayer {
                 e.printStackTrace();
             }
             int dir = 0;
-            int move = 490;
-            int max = 5;
+            int move = 0;
+            int max = 5; // Corner of box to fill with guys
+            int west = 0;
+            int south = 0;
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
+                move++;
+                // on first move, determine which side of arcon
+                Direction d1 = null;
+                Direction d2 = null;
+                Direction d3 = null;
+                if(move == 1){
+                    RobotInfo[] info = rc.senseNearbyRobots(1,myTeam);
+                    for(int i = 0; i < info.length; i++){
+                        if(info[i].type.equals(RobotType.ARCHON)){
+                            int roboStart = 1;
+                            MapLocation aR = info[i].location;
+                            MapLocation ours = rc.getLocation();
+                            if(ours.x < aR.x){
+                                if(ours.y < aR.y){
+                                    roboStart = 5;
+                                } else{
+                                    roboStart = 7;
+                                }
+                            } else if(ours.y < aR.y){
+                                roboStart = 3;
+                            }
+                            d1 = directions[roboStart - 1];
+                            d2 = directions[roboStart];
+                            d3 = directions[(roboStart + 1)%8];
+                            break;
+                        }
 
+                    }
+
+                    if(d1 == null){
+                        d1 = Direction.EAST;
+                        d2 = Direction.SOUTH_EAST;
+                        d3 = Direction.SOUTH;
+                    }
+                }
                 try {
                     int fate = rand.nextInt(1000);
 
@@ -123,50 +159,16 @@ public class RobotPlayer {
 
                     if (!shouldAttack) {
                         if (rc.isCoreReady()) {
-
-
-                            //if (fate < 600) {
-                                // Choose a random direction to try to move in
-                                    for(int i = 0; i < 8; i++){
-                                        Direction dirToMove1 = directions[i];
-                                        Direction dirToMove2 = directions[(i+1)%8];
-                                        Direction dirToMove3 = directions[(i+2)%8];
-                                        Direction dirToMove4 = directions[(i+3)%8];
-                                        if(!rc.canMove(dirToMove1) && !rc.canMove(dirToMove2) && !rc.canMove(dirToMove3) && rc.canMove(dirToMove4)){
-                                            rc.move(dirToMove4);
-                                            break;
-                                        }
-                                    move = 0;
-                                //}
-                                /*if(rc.getRoundNum() > 300){
-                                        Direction dirToMove2 = directions[4];
-                                        if(rc.canMove(dirToMove2)){
-                                            rc.move(dirToMove2);
-                                        }
-                                }
-                                if(rc.getRoundNum() > 600){
-                                    Direction dirToMove2 = directions[2];
-                                    if(rc.canMove(dirToMove2)){
-                                        rc.move(dirToMove2);
-                                    }
-                                }*/
-                                move++;
-                                //System.out.println("carl");
-                                /*rc.setIndicatorDot(rc.getLocation(),100,100,100);
-                                // Check the rubble in that direction
-                                if (rc.senseRubble(rc.getLocation().add(dirToMove)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-                                    // Too much rubble, so I should clear it
-                                    //rc.clearRubble(dirToMove);
-                                    // Check if I can move in this direction
-                                    dir = (dir + 1)%8;
-                                } else if (rc.canMove(dirToMove) && move <=3) {
-                                    // Move
-                                    //rc.move(dirToMove);
-                                    move++;
-                                } else {
-                                    dir = (dir + 4)%8;
-                                    move = 0;
-                                }*/
+                            if(rc.canMove(d2) && south < max && west < max){
+                                rc.move(d2);
+                                south++;
+                                west++;
+                            } else if(rc.canMove(d3) && south < max){
+                                rc.move(d3);
+                                south++;
+                            } else if(rc.canMove(d1) && west < max){
+                                rc.move(d1);
+                                west++;
                             }
                         }
                     }
