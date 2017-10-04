@@ -32,6 +32,8 @@ public class RobotPlayer {
                 e.printStackTrace();
             }
             boolean placed = false;
+            int botsBuilt = 0;
+            RobotType typeToBuild = robotTypes[1];
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
@@ -45,7 +47,6 @@ public class RobotPlayer {
                     }
                     if (rc.isCoreReady()) {
                         // Choose a random unit to build // now soldier
-                        RobotType typeToBuild = robotTypes[1];
                         // Check for sufficient parts
                         if (rc.hasBuildRequirements(typeToBuild)) {
                             // Choose a random direction to try to build in
@@ -53,9 +54,14 @@ public class RobotPlayer {
                             placed = false;
                             for (int i = 0; i < 4; i++) {
                                 // If possible, build in this direction
-                                if (rc.canBuild(dirToBuild, typeToBuild)) {
+                                if(botsBuilt > 3 && rc.canBuild(Direction.NORTH,RobotType.SCOUT)){
+                                    rc.build(Direction.NORTH, RobotType.SCOUT);
+                                    placed = true;
+                                    botsBuilt++;
+                                } else if (rc.canBuild(dirToBuild, typeToBuild)) {
                                     rc.build(dirToBuild, typeToBuild);
                                     placed = true;
+                                    botsBuilt++;
                                     break;
                                 } else {
                                     // Rotate the direction to try
@@ -74,7 +80,7 @@ public class RobotPlayer {
                     e.printStackTrace();
                 }
             }
-        } else if (rc.getType() != RobotType.TURRET) {
+        } else if (rc.getType() == RobotType.SOLDIER) {
             try {
                 // Any code here gets executed exactly once at the beginning of the game.
                 myAttackRange = rc.getType().attackRadiusSquared;
@@ -86,7 +92,7 @@ public class RobotPlayer {
             }
             int dir = 0;
             int move = 0;
-            int max = 1; // Corner of box to fill with guys
+            int max = 2; // Corner of box to fill with guys
             int west = 0;
             int south = 0;
 
@@ -217,6 +223,32 @@ public class RobotPlayer {
                     e.printStackTrace();
                 }
             }
+        }else if (rc.getType() == RobotType.SCOUT) {
+            Direction current = Direction.NORTH;
+            while (true) {
+                // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
+                // at the end of it, the loop will iterate once per game round.
+                try {
+                    if (rc.isCoreReady()) {
+                        if(rc.canMove(Direction.NORTH)){
+                            rc.move(Direction.NORTH);
+                        } else if(rc.canMove(Direction.NORTH_WEST)){
+                            rc.move(Direction.NORTH_WEST);
+                        } else if(rc.canMove(Direction.NORTH_EAST)){
+                            rc.move(Direction.NORTH_EAST);
+                        } else if(rc.canMove(Direction.WEST)){
+                            rc.move(Direction.WEST);
+                        }else if(rc.canMove(Direction.EAST)){
+                            rc.move(Direction.EAST);
+                        }
+                    }
+                    Clock.yield();
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    e.printStackTrace();
+                }
+            }
         }
+
     }
 }

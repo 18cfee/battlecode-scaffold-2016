@@ -32,6 +32,8 @@ public class RobotPlayer {
                 e.printStackTrace();
             }
             boolean placed = false;
+            int botsBuilt = 0;
+            RobotType typeToBuild = robotTypes[1];
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
@@ -45,7 +47,6 @@ public class RobotPlayer {
                     }
                     if (rc.isCoreReady()) {
                         // Choose a random unit to build // now soldier
-                        RobotType typeToBuild = robotTypes[1];
                         // Check for sufficient parts
                         if (rc.hasBuildRequirements(typeToBuild)) {
                             // Choose a random direction to try to build in
@@ -53,9 +54,13 @@ public class RobotPlayer {
                             placed = false;
                             for (int i = 0; i < 4; i++) {
                                 // If possible, build in this direction
-                                if (rc.canBuild(dirToBuild, typeToBuild)) {
+                                if(botsBuilt%5 == 4 && rc.canBuild(Direction.NORTH,robotTypes[5])){
+                                    placed = true;
+                                    botsBuilt++;
+                                } else if (rc.canBuild(dirToBuild, typeToBuild)) {
                                     rc.build(dirToBuild, typeToBuild);
                                     placed = true;
+                                    botsBuilt++;
                                     break;
                                 } else {
                                     // Rotate the direction to try
