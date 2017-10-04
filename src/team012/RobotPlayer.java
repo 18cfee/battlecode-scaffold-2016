@@ -50,34 +50,20 @@ public class RobotPlayer {
                         rc.setIndicatorString(0, "I don't any signal buddies");
                     }
                     if (rc.isCoreReady()) {
-                        if (fate < 800) {
-                            // Choose a random direction to try to move in
-                            Direction dirToMove = directions[fate % 8];
-                            // Check the rubble in that direction
-                            if (rc.senseRubble(rc.getLocation().add(dirToMove)) >= GameConstants.RUBBLE_OBSTRUCTION_THRESH) {
-                                // Too much rubble, so I should clear it
-                                rc.clearRubble(dirToMove);
-                                // Check if I can move in this direction
-                            } else if (rc.canMove(dirToMove)) {
-                                // Move
-                                //rc.move(dirToMove);
-                            }
-                        } else {
-                            // Choose a random unit to build // now soldier
-                            RobotType typeToBuild = robotTypes[1];
-                            // Check for sufficient parts
-                            if (rc.hasBuildRequirements(typeToBuild)) {
-                                // Choose a random direction to try to build in
-                                Direction dirToBuild = directions[rand.nextInt(8)];
-                                for (int i = 0; i < 8; i++) {
-                                    // If possible, build in this direction
-                                    if (rc.canBuild(dirToBuild, typeToBuild)) {
-                                        rc.build(dirToBuild, typeToBuild);
-                                        break;
-                                    } else {
-                                        // Rotate the direction to try
-                                        dirToBuild = dirToBuild.rotateLeft();
-                                    }
+                        // Choose a random unit to build // now soldier
+                        RobotType typeToBuild = robotTypes[1];
+                        // Check for sufficient parts
+                        if (rc.hasBuildRequirements(typeToBuild)) {
+                            // Choose a random direction to try to build in
+                            Direction dirToBuild = directions[rand.nextInt(8)];
+                            for (int i = 0; i < 8; i++) {
+                                // If possible, build in this direction
+                                if (rc.canBuild(dirToBuild, typeToBuild)) {
+                                    rc.build(dirToBuild, typeToBuild);
+                                    break;
+                                } else {
+                                    // Rotate the direction to try
+                                    dirToBuild = dirToBuild.rotateLeft();
                                 }
                             }
                         }
@@ -136,19 +122,30 @@ public class RobotPlayer {
 
                     if (!shouldAttack) {
                         if (rc.isCoreReady()) {
-                            if (fate < 600) {
-                                // Choose a random direction to try to move in
-                                if(move > 500){ // every 50 rounds
-                                    for(int i = 0; i < 8; i++){
-                                        Direction dirToMove1 = directions[i];
-                                        Direction dirToMove2 = directions[(i+4)%8];
-                                        if(!rc.canMove(dirToMove1) && rc.canMove(dirToMove2)){
+                            //if (fate < 600) {
+                            // Choose a random direction to try to move in
+                            for(int i = 0; i < 8; i++){
+                                Direction dirToMove1 = directions[i];
+                                Direction dirToMove2 = directions[(i+1)%8];
+                                Direction dirToMove3 = directions[(i+2)%8];
+                                Direction dirToMove4 = directions[(i+3)%8];
+                                if(!rc.canMove(dirToMove1) && !rc.canMove(dirToMove2) && !rc.canMove(dirToMove3) && rc.canMove(dirToMove4)){
+                                    rc.move(dirToMove4);
+                                }
+                                move = 0;
+                                //}
+                                /*if(rc.getRoundNum() > 300){
+                                        Direction dirToMove2 = directions[4];
+                                        if(rc.canMove(dirToMove2)){
                                             rc.move(dirToMove2);
                                         }
-                                    }
-                                    move = 0;
                                 }
-
+                                if(rc.getRoundNum() > 600){
+                                    Direction dirToMove2 = directions[2];
+                                    if(rc.canMove(dirToMove2)){
+                                        rc.move(dirToMove2);
+                                    }
+                                }*/
                                 move++;
                                 //System.out.println("carl");
                                 /*rc.setIndicatorDot(rc.getLocation(),100,100,100);
@@ -219,4 +216,3 @@ public class RobotPlayer {
         }
     }
 }
-
