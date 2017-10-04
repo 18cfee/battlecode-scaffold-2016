@@ -31,17 +31,11 @@ public class RobotPlayer {
                 System.out.println(e.getMessage());
                 e.printStackTrace();
             }
-
+            boolean placed = false;
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
                 try {
-                    int fate = rand.nextInt(1000);
-                    // Check if this ARCHON's core is ready
-                    if (fate % 10 == 2) {
-                        // Send a message signal containing the data (6370, 6147)
-                        rc.broadcastMessageSignal(6370, 6147, 80);
-                    }
                     Signal[] signals = rc.emptySignalQueue();
                     if (signals.length > 0) {
                         // Set an indicator string that can be viewed in the client
@@ -56,15 +50,20 @@ public class RobotPlayer {
                         if (rc.hasBuildRequirements(typeToBuild)) {
                             // Choose a random direction to try to build in
                             Direction dirToBuild = directions[(rand.nextInt(4)*2 + 1)];
+                            placed = false;
                             for (int i = 0; i < 4; i++) {
                                 // If possible, build in this direction
                                 if (rc.canBuild(dirToBuild, typeToBuild)) {
                                     rc.build(dirToBuild, typeToBuild);
+                                    placed = true;
                                     break;
                                 } else {
                                     // Rotate the direction to try
                                     dirToBuild = dirToBuild.rotateLeft().rotateLeft();
                                 }
+                            }
+                            if(!placed){
+                                rc.broadcastSignal(80);
                             }
                         }
                     }
@@ -87,54 +86,59 @@ public class RobotPlayer {
             }
             int dir = 0;
             int move = 0;
-            int max = 5; // Corner of box to fill with guys
+            int max = 1; // Corner of box to fill with guys
             int west = 0;
             int south = 0;
+
+            Direction d1 = Direction.WEST;
+            Direction d2 = Direction.NORTH_WEST;
+            Direction d3 = Direction.NORTH;
             while (true) {
+                try {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
-                move++;
-                // on first move, determine which side of arcon
-                Direction d1 = null;
-                Direction d2 = null;
-                Direction d3 = null;
-                if(move == 1){
-                    RobotInfo[] info = rc.senseNearbyRobots(1,myTeam);
-                    for(int i = 0; i < info.length; i++){
-                        if(info[i].type.equals(RobotType.ARCHON)){
-                            int roboStart = 1;
-                            MapLocation aR = info[i].location;
-                            MapLocation ours = rc.getLocation();
-                            if(ours.x < aR.x){
-                                if(ours.y < aR.y){
-                                    roboStart = 5;
-                                } else{
-                                    roboStart = 7;
+                    move++;
+                    // on first move, determine which side of arcon
+                    if(move == 1){
+                        RobotInfo[] info = rc.senseNearbyRobots(2,myTeam);
+                        for(int i = 0; i < info.length; i++){
+                            if(info[i].type.equals(RobotType.ARCHON)){
+                                int roboStart = 1;
+                                MapLocation aR = info[i].location;
+                                MapLocation ours = rc.getLocation();
+                                if(ours.x < aR.x){
+                                    if(ours.y > aR.y){
+                                        roboStart = 5;
+                                    } else{
+                                        roboStart = 7;
+                                    }
+                                } else if(ours.y > aR.y){
+                                    roboStart = 3;
                                 }
-                            } else if(ours.y < aR.y){
-                                roboStart = 3;
+                                d1 = directions[roboStart - 1];
+                                d2 = directions[roboStart];
+                                d3 = directions[(roboStart + 1)%8];
+                                break;
                             }
-                            d1 = directions[roboStart - 1];
-                            d2 = directions[roboStart];
-                            d3 = directions[(roboStart + 1)%8];
-                            break;
+
                         }
-
                     }
 
-                    if(d1 == null){
-                        d1 = Direction.EAST;
-                        d2 = Direction.SOUTH_EAST;
-                        d3 = Direction.SOUTH;
+                    // read the message to increase the bounds
+                    /*Signal s = rc.readSignal();
+                    Team a = s.getTeam();
+                    if(a.equals(myTeam)) max++;*/
+                    Signal[] signals = rc.emptySignalQueue();
+                    for(int i = 0; i < signals.length; i++){
+                        if(signals[i].getTeam().equals(myTeam)) max++;
                     }
-                }
-                try {
-                    int fate = rand.nextInt(1000);
+
+                    /*int fate = rand.nextInt(1000);
 
                     if (fate % 5 == 3) {
                         // Send a normal signal
                         rc.broadcastSignal(80);
-                    }
+                    }*/
                     int round = rc.getRoundNum();
                     boolean shouldAttack = false;
 
