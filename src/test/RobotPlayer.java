@@ -2,6 +2,7 @@ package test;
 
 import battlecode.common.*;
 
+import javax.xml.stream.Location;
 import java.util.Random;
 
 public class RobotPlayer {
@@ -55,7 +56,7 @@ public class RobotPlayer {
                             for (int i = 0; i < 4; i++) {
                                 // If possible, build in this direction
                                 Direction a = directions[rand.nextInt(4)*2];
-                                if(botsBuilt%5 == 0 && rc.canBuild((a),RobotType.SCOUT)){
+                                if(botsBuilt%5 == 4 && rc.canBuild((a),RobotType.SCOUT)){
                                     rc.build(a, RobotType.SCOUT);
                                     placed = true;
                                     botsBuilt++;
@@ -64,13 +65,14 @@ public class RobotPlayer {
                                     placed = true;
                                     botsBuilt++;
                                     break;
-                                } else {
-                                    // Rotate the direction to try
-                                    dirToBuild = dirToBuild.rotateLeft().rotateLeft();
                                 }
                             }
                             if(!placed){
-                                rc.broadcastSignal(80);
+                                RobotInfo[] infoZ = rc.senseNearbyRobots(2,Team.ZOMBIE);
+                                // Only brodcat for increasing size if no zombies in the area
+                                if(infoZ. length  == 0) rc.broadcastSignal(80);
+                                Direction a = directions[rand.nextInt(4)*2];
+                                if(rc.canBuild((a),RobotType.SCOUT)) rc.build(a, RobotType.SCOUT);
                             }
                         }
                     }
@@ -168,12 +170,15 @@ public class RobotPlayer {
 
                     if (!shouldAttack) {
                         if (rc.isCoreReady()) {
-                            if(rc.canMove(d3) && (south + west) < max){
+                            if(max%2 == 0 && rc.canMove(d3) && (south + west) < max){
                                 rc.move(d3);
                                 south++;
                             } else if(rc.canMove(d1) && (south + west) < max){
                                 rc.move(d1);
                                 west++;
+                            }else if(rc.canMove(d3) && (south + west) < max) {
+                                rc.move(d3);
+                                south++;
                             }
                         }
                     }
@@ -246,20 +251,66 @@ public class RobotPlayer {
                         boolean movingAway = (minD >= lastTimeD);
                         boolean outOfCircles = (minD > 15);
                         lastTimeD = minD;
-                        RobotInfo[] infod = rc.senseNearbyRobots(10,enemyTeam);
-                        if(infod.length == 0){
-                            if(rc.canMove(current) &&(outOfCircles || movingAway)) {
-                                rc.move(current);
-                            } else {
-                                current = directions[(rand.nextInt(8))];
-                                for(int i = 0; i < 8;i++){
-                                    if(rc.canMove(current)){
-                                        rc.move(current);
+                        RobotInfo[] infoE = rc.senseNearbyRobots(10,enemyTeam);
+                        RobotInfo[] infoZ = rc.senseNearbyRobots(10,enemyTeam);
+
+                        if(rc.canMove(current) &&(outOfCircles || movingAway)) {
+                        } else {
+                            current = directions[(rand.nextInt(8))];
+                            for(int i = 0; i < 8;i++){
+                                if(rc.canMove(current)){
+                                    break;
+                                }
+                                current.rotateLeft();
+                            }
+                        }
+                        // NearbyZombies
+                        if(infoZ.length != 0){
+                            //Nearby Enemy, then stop (never calls move command)
+                            if(infoE.length == 0){
+                                boolean moved = false;
+                                Direction curLeft = current.rotateLeft();
+                                Direction current2 = current;
+                                for(int i = 0; i < 4; i++){
+                                    boolean leftC = true;
+                                    int lX = curLeft.dx;
+                                    int lY = curLeft.dy;
+                                    boolean currentC = true;
+                                    int cX = current2.dx;
+                                    int cY = current2.dy;
+                                    // Check that extended line does not hit any zombies
+                                    // May want it to check different ranges at some point
+                                    for(int j = 0; j < infoZ.length; j++){
+                                        //if current is bad
+                                        RobotInfo z = infoZ[i];
+                                        int changeX = z.location.x - rc.getLocation().x;
+                                        int changeY = z.location.y - rc.getLocation().y;
+                                        if(cX == Math.abs(changeX)/changeX || cY == Math.abs(changeY)/changeY){
+                                            currentC = false;
+                                        }
+                                        if(lX == Math.abs(changeX)/changeX || lY == Math.abs(changeY)/changeY){
+                                            leftC = false;
+                                        }
+                                    }
+                                    if(currentC && rc.canMove(current2)){
+                                        rc.move(current2);
+                                        moved = true;
+                                        break;
+                                    } else if(leftC && rc.canMove(curLeft)){
+                                        rc.move(curLeft);
+                                        moved = true;
                                         break;
                                     }
-                                    current.rotateLeft();
+                                    current2.rotateRight();
+                                    curLeft.rotateLeft();
+                                }
+                                if(!moved){
+                                    rc.move(current);
                                 }
                             }
+                        } else{
+                            if(infoE.length == 0) current.opposite();
+                            rc.move(current);
                         }
 
                     }
