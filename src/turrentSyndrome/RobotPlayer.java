@@ -1,4 +1,4 @@
-package team012;
+package turrentSyndrome;
 
 import battlecode.common.*;
 
@@ -60,6 +60,7 @@ public class RobotPlayer {
                             }
                         }
                     }
+
                     Clock.yield();
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
