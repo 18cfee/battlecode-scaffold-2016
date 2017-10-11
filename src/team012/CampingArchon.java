@@ -4,14 +4,17 @@ import battlecode.common.*;
 
 import java.util.ArrayList;
 
-public class Archon extends Bot{
+public class CampingArchon extends Bot{
 
     static RobotController rc = RobotPlayer.rc;
     static ArrayList<RobotType> buildList = new ArrayList<>();
-    static Direction buildDir;
-    static int archonId = 0;
+    static Direction current = Direction.EAST;
+    static boolean placedScout = false;
+    static RobotType typeToBuild = RobotType.SCOUT;
+    // Just for testing out healing
+    //static MapLocation b = new MapLocation(spawnLoc.x+1,spawnLoc.y);
 
-    public Archon(){
+    public CampingArchon(){
 
         buildList.add(RobotType.SCOUT);
         buildList.add(RobotType.TURRET);
@@ -19,21 +22,30 @@ public class Archon extends Bot{
         buildList.add(RobotType.SOLDIER);
         buildList.add(RobotType.SOLDIER);
         buildList.add(RobotType.SOLDIER);
-
-        buildDir = randomDir();
-
-        for(int i = 0; i < archonLocs.length; i++)
-            if (archonLocs[i] == spawnLoc)
-                archonId = i+1;
-
     }
 
     public void runFrame() throws GameActionException{
 
-//        if (archonId == 1)
-//            buildFromList(randomDir());
-        tryBuild(buildDir, RobotType.SOLDIER);
-        buildDir = buildDir.rotateLeft();
+        if(rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
+            /*if(rc.senseRobotAtLocation(b) != null && rc.senseRobotAtLocation(b).team.equals(myTeam)){
+                rc.repair(b);
+            }*/
+            for(int i = 0; i < 8; i++){
+                if(rc.canBuild(current,typeToBuild)){
+                    rc.build(current,typeToBuild);
+                    if(!placedScout){
+                        typeToBuild = RobotType.TURRET;
+                        placedScout = true;
+                    }
+                    current = current.rotateLeft();
+                    break;
+                }else{
+                    current = current.rotateLeft();
+                }
+            }
+        }
+
+
 
     }
 
