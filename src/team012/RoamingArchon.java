@@ -15,6 +15,7 @@ public class RoamingArchon extends Bot{
     static int archonId = 0;
     static boolean isFirstA = false;
     static RobotType typeToBuild = RobotType.SCOUT;
+    static Direction movDir = randomDir();
 
     public RoamingArchon(){
 
@@ -25,10 +26,12 @@ public class RoamingArchon extends Bot{
         buildList.add(RobotType.SOLDIER);
         buildList.add(RobotType.SOLDIER);
         if(spawnLoc == rc.getInitialArchonLocations(myTeam)[0]) isFirstA =true;
+
     }
 
     public void runFrame() throws GameActionException{
 
+        movDir = moveSomewhere(movDir);
 
 
 
