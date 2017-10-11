@@ -1,0 +1,25 @@
+    public boolean canBuy(RobotType botType){
+        return botType.partCost < rc.getTeamParts();
+    }
+
+    public static MapLocation getLocAt(Direction dir, MapLocation loc){
+            switch (dir) {
+                case EAST:
+                    return new MapLocation(loc.x+1,loc.y);
+                case WEST:
+                    return new MapLocation(loc.x-1, loc.y);
+                case NORTH:
+                    return new MapLocation(loc.x, loc.y+1);
+                case SOUTH:
+                    return new MapLocation(loc.x, loc.y-1);
+                case SOUTH_EAST:
+                    return new MapLocation(loc.x+1, loc.y-1);
+                case SOUTH_WEST:
+                    return new MapLocation(loc.x-1, loc.y-1);
+                case NORTH_WEST:
+                    return new MapLocation(loc.x-1, loc.y+1);
+                case NORTH_EAST:
+                    return new MapLocation(loc.x+1, loc.y+1);
+                default: return new MapLocation(loc.x, loc.y);
+            }
+        }
