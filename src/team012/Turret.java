@@ -1,4 +1,4 @@
-package rebuild;
+package team012;
 
 import battlecode.common.*;
 

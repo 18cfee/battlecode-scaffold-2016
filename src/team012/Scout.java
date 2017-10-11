@@ -1,4 +1,4 @@
-package rebuild;
+package team012;
 
 import battlecode.common.*;
 
@@ -13,7 +13,6 @@ public class Scout extends Bot {
     static RobotInfo[] zombiesInRange;
 
     public void runFrame() throws GameActionException{
-
         enemiesInRange = rc.senseNearbyRobots(myAttackRange, enemyTeam);
         zombiesInRange = rc.senseNearbyRobots(myAttackRange, Team.ZOMBIE);
         int minSD = 100;
