@@ -38,11 +38,14 @@ public class RobotPlayer {
             MapLocation[] a = rc.getInitialArchonLocations(myTeam);
             if(rc.getLocation().equals(a[0])) isFirstA = true;
             Direction current = Direction.EAST;
+            // for healing
+            MapLocation b = new MapLocation(a[0].y,a[0].x + 1);
             //if()
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
                 try {
+                    rc.repair(b);
                     if(rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
                         if (isFirstA) {
                             for(int i = 0; i < 8; i++){

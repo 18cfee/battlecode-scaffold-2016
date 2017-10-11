@@ -39,12 +39,16 @@ public class RobotPlayer {
             if(rc.getLocation().equals(a[0])) isFirstA = true;
             Direction current = Direction.EAST;
             //if()
+            MapLocation b = new MapLocation(a[0].x+1,a[0].y);
             while (true) {
                 // This is a loop to prevent the run() method from returning. Because of the Clock.yield()
                 // at the end of it, the loop will iterate once per game round.
                 try {
                     if(rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
                         if (isFirstA) {
+                            if(rc.senseRobotAtLocation(b) != null && rc.senseRobotAtLocation(b).team.equals(myTeam)){
+                                rc.repair(b);
+                            }
                             for(int i = 0; i < 8; i++){
                                 if(rc.canBuild(current,typeToBuild)){
                                     rc.build(current,typeToBuild);
