@@ -46,4 +46,15 @@ public abstract class Bot {
         return directions[(int)(Math.random()*8)];
     }
 
+    public static Direction moveSomewhere(Direction dir) throws GameActionException{
+        for (int i = 0; i < 8; i++) {
+            if (rc.canMove(dir)) {
+                rc.move(dir);
+                return dir;
+            }
+            dir = dir.rotateLeft();
+        }
+        return dir;
+    }
+
 }

@@ -16,6 +16,7 @@ public class RoamingArchon extends Bot{
     static MapLocation spot = rc.getInitialArchonLocations(myTeam)[0];
     static int lastTimeD = 0;
     static Random rand = new Random(rc.getID());
+    static Direction movDir = randomDir();
 
     public RoamingArchon(){
 
@@ -30,6 +31,7 @@ public class RoamingArchon extends Bot{
 
     public void runFrame() throws GameActionException{
 
+        movDir = moveSomewhere(movDir);
     }
 
     /*private void roamAway(){
