@@ -14,18 +14,14 @@ public class RobotPlayer {
         RobotPlayer.rc = rc;
 
         Bot bot;
-        System.out.println("Carl");
         switch (rc.getType()) {
 
             case ARCHON:
-                System.out.println("Carl2");
                 if(rc.getLocation().equals(rc.getInitialArchonLocations(rc.getTeam())[0])){
                     // Standing Archon
                     bot = new CampingArchon();
-                    System.out.println("Carl3");
                 } else{
                     bot = new RoamingArchon();
-                    System.out.println("Carl4");
                 }
 
                 break;
