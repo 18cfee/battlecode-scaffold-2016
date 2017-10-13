@@ -20,6 +20,7 @@ public class Archon extends Global {
     //static MapLocation b = new MapLocation(spawnLoc.x+1,spawnLoc.y);
 
     public static void init() {
+        archonId = 99;
         for (int i = 0; i < ourArchonSpawns.length; i++)
             if (spawnLoc.compareTo(ourArchonSpawns[i]) == 0)
                 archonId = i;
@@ -84,6 +85,13 @@ public class Archon extends Global {
         }
     }
 
+
+    // Code for telling Roaming they can Build, must have used all original resources and then climbed up to a certainPoint
+
+    private static boolean roamingAllowedToBuild(){
+        if(rc.getRoundNum() > 200 && rc.getTeamParts() > 150) return true;
+        else return false;
+    }
 
 
 
