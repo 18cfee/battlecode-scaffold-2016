@@ -37,7 +37,9 @@ public class RobotPlayer {
                 Guard.init();
                 break;
             default:
-                return;
+                bot = new CapturedBot();
+                CapturedBot.init();
+                break;
         }
         bot.run();
 

@@ -13,6 +13,7 @@ public class Global {
             Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
 
     static MapLocation[] ourArchonSpawns;
+    static MapLocation[] theirArchonSpawns;
     static MapLocation spawnLoc;
 
     static int myAttackRange;
@@ -25,14 +26,15 @@ public class Global {
     static MapLocation myLoc;
     static int roundNum;
 
-    static enum Goals {ENEMY_ARCHON, NEUTRAL_ARCHON, SHIT_IF_I_KNOW}
-    static MapLocation goal;
 
     public static void init(){
+        myLoc = rc.getLocation();
         myTeam = rc.getTeam();
         enemyTeam = myTeam.opponent();
 
         ourArchonSpawns = rc.getInitialArchonLocations(myTeam);
+        theirArchonSpawns = rc.getInitialArchonLocations(enemyTeam);
+
         myAttackRange = rc.getType().attackRadiusSquared;
         mySensorRange = rc.getType().sensorRadiusSquared;
         spawnLoc = rc.getLocation();

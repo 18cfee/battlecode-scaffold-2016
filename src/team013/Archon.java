@@ -11,6 +11,10 @@ public class Archon extends Global {
     static boolean placedScout;
     static RobotType typeToBuild = RobotType.SCOUT;
 
+    static enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
+    static Destination destination;
+    static MapLocation destLoc;
+
     static int archonId;
     // Just for testing out healing
     //static MapLocation b = new MapLocation(spawnLoc.x+1,spawnLoc.y);
@@ -35,7 +39,8 @@ public class Archon extends Global {
             buildList.add(RobotType.SOLDIER);
         } else {
             // ROAMING ARCHON INIT HERE
-            goal = rc.getInitialArchonLocations(enemyTeam)[0];
+            destLoc = rc.getLocation();
+            destination = Destination.NONE;
 
 
         }
@@ -68,25 +73,39 @@ public class Archon extends Global {
         }
     }
 
+    private static Direction lastDir = myLoc.directionTo(theirArchonSpawns[0]);
+    private static MapLocation lastLocation = null;
+    private static int cooldown;
+
     private static void roam() throws GameActionException {
 
-        rc.setIndicatorLine(goal,rc.getLocation(), 255,0,0);
+        rc.setIndicatorLine(destLoc, rc.getLocation(), 255, 0, 0);
 
-        int b = Clock.getBytecodeNum();
         if (rc.isCoreReady()) {
-            if (!Path.moveSafeTo(goal))
-                if (!Path.moveTo(goal))
-                    Path.moveSomewhereOrLeft(myLoc.directionTo(goal));
+
+            if (destination == Destination.STUCK) {
+                if (cooldown++ < 13)
+                    lastDir = Path.moveSomewhereOrLeft(lastDir);
+                else
+                    destination = Destination.NONE;
+            }
+
+            if (destination == Destination.NONE && !scanForNearNeutral()) {
+                lastDir = Path.moveSomewhereOrLeft(lastDir);
+            } else {
+                if (!tryConvertNeutral())
+                    if (!Path.moveSafeTo(destLoc)) {
+                        Path.moveTo(destLoc);
+                        if (lastLocation == rc.getLocation()) {
+                            destination = Destination.STUCK;
+                            lastDir = rc.getLocation().directionTo(destLoc).opposite();
+                            cooldown = 0;
+                        }
+                    }
+
+            }
+            lastLocation = rc.getLocation();
         }
-        rc.setIndicatorString(0,String.valueOf(Clock.getBytecodeNum()-b));
-
-    }
-
-    public void tryConvertNeutral() {
-        if (!rc.isCoreReady())
-            return;
-        RobotInfo[] adjNeutral = rc.senseNearbyRobots(2, Team.NEUTRAL);
-
     }
 
     public boolean buildFromList(Direction dir) throws GameActionException {
@@ -99,12 +118,42 @@ public class Archon extends Global {
         return false;
     }
 
-    public boolean tryBuild(Direction dir, RobotType rType) throws GameActionException {
+    public static boolean tryBuild(Direction dir, RobotType rType) throws GameActionException {
         if (rc.isCoreReady() && rc.canBuild(dir, rType)) {
             rc.build(dir, rType);
             return true;
         }
         return false;
+    }
+
+    public static boolean tryConvertNeutral() throws GameActionException{
+        if (!rc.isCoreReady())
+            return false;
+        RobotInfo[] adjNeutral = rc.senseNearbyRobots(2, Team.NEUTRAL);
+        if (adjNeutral.length > 0) {
+            rc.activate(adjNeutral[0].location);
+            if (adjNeutral[0].location.compareTo(destLoc) == 0) {
+                destLoc = rc.getLocation();
+                destination = Destination.NONE;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean scanForNearNeutral() {
+        RobotInfo[] neutrals = rc.senseNearbyRobots(-1, Team.NEUTRAL);
+
+        for(RobotInfo neutralRobot : neutrals) {
+            if (neutralRobot.type == RobotType.ARCHON) {
+                destLoc = neutralRobot.location;
+                destination = Destination.NEUTRAL_ARCHON;
+                return true;
+            }
+            destination = Destination.NEUTRAL_UNIT;
+            destLoc = neutralRobot.location;
+        }
+        return neutrals.length > 0;
     }
 
 }

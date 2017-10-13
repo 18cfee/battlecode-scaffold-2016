@@ -36,9 +36,10 @@ public class Path extends Global {
             return true;
         }
         if (rc.canMove(dir.rotateRight())) {
-            rc.move(dir);
+            rc.move(dir.rotateRight());
             return true;
         }
+
         return false;
     }
 

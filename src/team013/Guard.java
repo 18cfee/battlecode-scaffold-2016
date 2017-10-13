@@ -1,6 +1,6 @@
 package team013;
 
-import battlecode.common.GameActionException;
+import battlecode.common.*;
 
 public class Guard extends Global {
 
