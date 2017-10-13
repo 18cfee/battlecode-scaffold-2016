@@ -87,11 +87,11 @@ public class Archon extends Global {
     }
 
 
-    // Code for telling Roaming they can Build, must have used all original resources and then climbed up to a certainPoint
+    //Auto heal any adjacent units
 
+    // Code for telling Roaming they can Build, must have used all original resources and then climbed up to a certainPoint
     private static boolean roamingAllowedToBuild(Direction a, RobotType typeBot){
-        if(rc.getRoundNum() > 200 && rc.getTeamParts() > 150 && rc.canBuild(a, typeBot)) return true;
-        else return false;
+        return (rc.getRoundNum() > 200 && rc.getTeamParts() > 150);
     }
 
 
