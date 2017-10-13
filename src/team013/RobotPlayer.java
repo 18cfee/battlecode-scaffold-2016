@@ -19,30 +19,34 @@ public class RobotPlayer {
             case ARCHON:
                 bot = new Archon();
                 Archon.init();
+                Archon.loop();
                 break;
             case SOLDIER:
                 bot = new Soldier();
                 Soldier.init();
+                Soldier.loop();
                 break;
             case SCOUT:
                 bot = new Scout();
                 Scout.init();
+                Scout.loop();
                 break;
             case TURRET:
                 bot = new Turret();
                 Turret.init();
+                Turret.loop();
                 break;
             case GUARD:
                 bot = new Guard();
                 Guard.init();
+                Guard.loop();
                 break;
             default:
-                bot = new CapturedBot();
-                CapturedBot.init();
+                bot = new DefaultBot();
+                DefaultBot.init();
+                DefaultBot.loop();
                 break;
         }
-        bot.run();
-
 
     }
 }

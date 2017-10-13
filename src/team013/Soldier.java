@@ -11,25 +11,23 @@ public class Soldier extends Global {
     static int max; // Corner of box to fill with guys
     static int west;
     static int south;
-
     static Random rand;
 
+    static Direction d1;
+    static Direction d3;
 
     public static void init() {
-
+        rand = new Random();
+        d1 = Direction.WEST;
+        d3 = Direction.NORTH;
         dir = 0;
         move = 0;
         max = 1;
         west = 0;
         south = 0;
-
-        rand = new Random();
     }
 
-    static Direction d1 = Direction.WEST;
-    static Direction d3 = Direction.NORTH;
-
-    public void runFrame() throws GameActionException{
+    private static void turn() throws GameActionException{
 
         move++;
         // on first move, determine which side of arcon
@@ -72,6 +70,7 @@ public class Soldier extends Global {
                 // Send a normal signal
                 rc.broadcastSignal(80);
             }*/
+        int round = rc.getRoundNum();
         boolean shouldAttack = false;
 
         // If this robot type can attack, check for enemies within range and attack one
@@ -108,5 +107,20 @@ public class Soldier extends Global {
             }
         }
     }
+
+    public static void loop() {
+        while (true) {
+            try {
+                // BEGIN TURN
+                update();
+                turn();
+                // END OF TURN
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            Clock.yield();
+        }
+    }
+
 
 }

@@ -4,7 +4,7 @@ import battlecode.common.*;
 
 public class Scout extends Global {
 
-    public void runFrame() throws GameActionException{
+    public static void turn() throws GameActionException{
         int minSD = 100;
         int xShoot = 0;
         int yShoot = 0;
@@ -39,6 +39,20 @@ public class Scout extends Global {
             rc.broadcastMessageSignal(xShoot,yShoot,80);
         }
 
+    }
+
+    public static void loop() {
+        while (true) {
+            try {
+                // BEGIN TURN
+                update();
+                turn();
+                // END OF TURN
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            Clock.yield();
+        }
     }
 
 }

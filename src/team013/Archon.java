@@ -47,7 +47,7 @@ public class Archon extends Global {
         rc.setIndicatorString(2, String.valueOf(archonId));
     }
 
-    public void runFrame() throws GameActionException{
+    public static void turn() throws GameActionException{
         if (archonId > 0) {
             roam();
             return;
@@ -67,6 +67,20 @@ public class Archon extends Global {
                     }
                 }
             }
+        }
+    }
+
+    public static void loop() {
+        while (true) {
+            try {
+                // BEGIN TURN
+                update();
+                turn();
+                // END OF TURN
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            Clock.yield();
         }
     }
 

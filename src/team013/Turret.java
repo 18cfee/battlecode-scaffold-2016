@@ -6,7 +6,7 @@ public class Turret extends Global {
 
     public static void init(){};
 
-    public void runFrame() throws GameActionException{
+    public static void turn() throws GameActionException{
 
         // If this robot type can attack, check for enemies within range and attack one
         if (rc.isWeaponReady()) {
@@ -48,7 +48,20 @@ public class Turret extends Global {
             }
         }
 
+    }
 
+    public static void loop() {
+        while (true) {
+            try {
+                // BEGIN TURN
+                update();
+                turn();
+                // END OF TURN
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            Clock.yield();
+        }
     }
 
 }

@@ -41,28 +41,13 @@ public class Global {
 
     }
 
-
-    public void runFrame() throws GameActionException {
-
+    public static void update() {
+        myLoc = rc.getLocation();
+        roundNum = rc.getRoundNum();
+        updateVisible();
     }
 
-    public void run() {
-
-        while (true) {
-            try {
-                myLoc = rc.getLocation();
-                roundNum = rc.getRoundNum();
-                updateNearby();
-
-                runFrame();
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-            Clock.yield();
-        }
-    }
-
-    public static void updateNearby(){
+    public static void updateVisible(){
         visibleZombies = rc.senseNearbyRobots(mySensorRange, Team.ZOMBIE);
         visibleHostiles = rc.senseHostileRobots(myLoc, mySensorRange);
         visibleAllies = rc.senseNearbyRobots(mySensorRange, myTeam);
