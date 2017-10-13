@@ -1,33 +1,24 @@
-package team013;
+package team10;
 
 import battlecode.common.*;
-
 import java.util.Random;
 
-public class Soldier extends Global {
+public class Soldier extends Bot {
 
-    static int dir;
-    static int move;
-    static int max; // Corner of box to fill with guys
-    static int west;
-    static int south;
-    static Random rand;
+    static final int myAttackRange = rc.getType().attackRadiusSquared;
+    Random rand = new Random();
 
-    static Direction d1;
-    static Direction d3;
+    static int dir = 0;
+    static int move = 0;
+    static int max = 1; // Corner of box to fill with guys
+    static int west = 0;
+    static int south = 0;
 
-    public static void init() {
-        rand = new Random();
-        d1 = Direction.WEST;
-        d3 = Direction.NORTH;
-        dir = 0;
-        move = 0;
-        max = 1;
-        west = 0;
-        south = 0;
-    }
 
-    private static void turn() throws GameActionException{
+    static Direction d1 = Direction.WEST;
+    static Direction d3 = Direction.NORTH;
+
+    public void runFrame() throws GameActionException{
 
         move++;
         // on first move, determine which side of arcon
@@ -107,20 +98,5 @@ public class Soldier extends Global {
             }
         }
     }
-
-    public static void loop() {
-        while (true) {
-            try {
-                // BEGIN TURN
-                update();
-                turn();
-                // END OF TURN
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-            Clock.yield();
-        }
-    }
-
 
 }

@@ -2,25 +2,15 @@ package team012;
 
 import battlecode.common.*;
 
-public class Scout extends Bot {
+public class Scout extends Global {
 
-    static final int myAttackRange = rc.getType().sensorRadiusSquared;
-
-    static Direction current = Direction.NORTH;
-    static MapLocation aCenter = archonLocs[0];
-    static int lastTimeD = 0;
-    static RobotInfo[] enemiesInRange;
-    static RobotInfo[] zombiesInRange;
-
-    public void runFrame() throws GameActionException{
-        enemiesInRange = rc.senseNearbyRobots(myAttackRange, enemyTeam);
-        zombiesInRange = rc.senseNearbyRobots(myAttackRange, Team.ZOMBIE);
+    public static void turn() throws GameActionException{
         int minSD = 100;
         int xShoot = 0;
         int yShoot = 0;
         int myX = rc.getLocation().x;
         int myY = rc.getLocation().y;
-        for(RobotInfo enemy : enemiesInRange) {
+        for(RobotInfo enemy : visibleHostiles) {
             int x = enemy.location.x;
             int y = enemy.location.y;
             int dx = Math.abs(x - myX);
@@ -33,7 +23,7 @@ public class Scout extends Bot {
             }
         }
 
-        for(RobotInfo enemy : zombiesInRange) {
+        for(RobotInfo enemy : visibleZombies) {
             int x = enemy.location.x;
             int y = enemy.location.y;
             int dx = Math.abs(x - myX);
@@ -49,6 +39,20 @@ public class Scout extends Bot {
             rc.broadcastMessageSignal(xShoot,yShoot,80);
         }
 
+    }
+
+    public static void loop() {
+        while (true) {
+            try {
+                // BEGIN TURN
+                update();
+                turn();
+                // END OF TURN
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            Clock.yield();
+        }
     }
 
 }

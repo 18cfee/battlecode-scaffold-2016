@@ -1,6 +1,6 @@
-package team013;
+package team10;
 
-import battlecode.common.RobotController;
+import battlecode.common.*;
 
 public class RobotPlayer {
 
@@ -13,40 +13,36 @@ public class RobotPlayer {
     public static void run(RobotController rc) {
         RobotPlayer.rc = rc;
 
-        Global.init();
-        Global bot;
+        Bot bot;
         switch (rc.getType()) {
+
             case ARCHON:
-                bot = new Archon();
-                Archon.init();
-                Archon.loop();
+                if(rc.getLocation().equals(rc.getInitialArchonLocations(rc.getTeam())[0])){
+                    // Standing Archon
+                    bot = new CampingArchon();
+                } else{
+                    bot = new RoamingArchon();
+                }
+
                 break;
             case SOLDIER:
                 bot = new Soldier();
-                Soldier.init();
-                Soldier.loop();
                 break;
             case SCOUT:
                 bot = new Scout();
-                Scout.init();
-                Scout.loop();
                 break;
             case TURRET:
                 bot = new Turret();
-                Turret.init();
-                Turret.loop();
                 break;
             case GUARD:
                 bot = new Guard();
-                Guard.init();
-                Guard.loop();
                 break;
             default:
-                bot = new DefaultBot();
-                DefaultBot.init();
-                DefaultBot.loop();
-                break;
+                return;
         }
+
+        bot.run();
+
 
     }
 }
