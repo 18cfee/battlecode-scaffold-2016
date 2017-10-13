@@ -4,13 +4,11 @@ import battlecode.common.*;
 
 import javax.xml.stream.Location;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Archon extends Global {
 
     static ArrayList<RobotType> buildList;
-    static Direction current;
-    static boolean placedScout;
-    static RobotType typeToBuild = RobotType.SCOUT;
 
     static enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
     static Destination destination;
@@ -54,22 +52,142 @@ public class Archon extends Global {
             roam();
             return;
         } else if (archonId == 0) {
-            if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
-                for (int i = 0; i < 8; i++) {
-                    if (rc.canBuild(current, typeToBuild)) {
-                        rc.build(current, typeToBuild);
-                        if (!placedScout) {
-                            typeToBuild = RobotType.TURRET;
-                            placedScout = true;
-                        }
-                        current = current.rotateLeft();
-                        break;
-                    } else {
-                        current = current.rotateLeft();
-                    }
+            if(placedScout) {
+                normSquareTurrets();
+            } else {
+                placeInitialScout();
+            }
+        }
+    }
+
+
+
+    static Direction current;
+    static boolean placedScout;
+    static MapLocation placedScoutLoc = null;
+    static RobotType typeToBuild = RobotType.TURRET;
+    private static void normSquareTurrets() throws GameActionException{
+        if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
+            for (int i = 0; i < 8; i++) {
+                if (rc.canBuild(current, typeToBuild)) {
+                    rc.build(current, typeToBuild);
+                    current = current.rotateLeft();
+                    break;
+                } else {
+                    current = current.rotateLeft();
                 }
             }
         }
+    }
+
+    private static void placeInitialScout() throws GameActionException{
+        if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
+            // Find most rubble spot
+            Direction that = Direction.NORTH;
+            Direction build = that;
+            double max = 1;
+            for (int i = 0; i < 8; i++) {
+                MapLocation check =  Path.getLocAt(that, rc.getLocation());
+                double rubAtSpot = rc.senseRubble(check);
+                System.out.println("Rubble At Spot: " + rubAtSpot + " " + that.toString());
+                System.out.println(check.x + " " + check.y + " " + rc.getLocation().x + " " + rc.getLocation().y);
+                if (rc.canBuild(that, RobotType.SCOUT) && max < rubAtSpot) {
+                    max = rubAtSpot;
+                    build = that;
+                }
+                that = that.rotateLeft();
+            }
+            rc.build(build, RobotType.SCOUT);
+            System.out.println("Rubble At Spot 2: " + build.toString());
+            placedScoutLoc = Path.getLocAt(build, rc.getLocation());
+            placedScout = true;
+        }
+    }
+
+
+    static MapLocation spot = rc.getInitialArchonLocations(myTeam)[0];
+    static int lastTimeD = 0;
+    static Random rand = new Random(rc.getID());
+    static private void roamAway() throws GameActionException{
+        if (rc.isCoreReady()) {
+            //Outside of safe areas
+            int minD = 50;
+
+            MapLocation now = rc.getLocation();
+            int xD = Math.abs(spot.x - now.x);
+            int yD = Math.abs(spot.y - now.y);
+            int distance = (int)Math.sqrt(xD*xD + yD*yD);
+            minD = distance;
+
+            boolean movingAway = (minD >= lastTimeD);
+            boolean outOfCircles = (minD > 15);
+            lastTimeD = minD;
+            RobotInfo[] infoE = rc.senseNearbyRobots(10,enemyTeam);
+            RobotInfo[] infoZ = rc.senseNearbyRobots(10,Team.ZOMBIE);
+
+            if(rc.canMove(current) &&(outOfCircles || movingAway)) {
+            } else {
+                current = directions[(rand.nextInt(8))];
+                for(int i = 0; i < 8;i++){
+                    if(rc.canMove(current)){
+                        break;
+                    }
+                    current.rotateLeft();
+                }
+            }
+            // NearbyZombies
+            if(infoZ.length != 0){
+                //Nearby Enemy, then stop (never calls move command)
+                if(infoE.length == 0){
+                    boolean moved = false;
+                    Direction curLeft = current.rotateLeft();
+                    Direction current2 = current;
+                    for(int i = 0; i < 4; i++){
+                        boolean leftC = true;
+                        int lX = curLeft.dx;
+                        int lY = curLeft.dy;
+                        boolean currentC = true;
+                        int cX = current2.dx;
+                        int cY = current2.dy;
+                        // Check that extended line does not hit any zombies
+                        // May want it to check different ranges at some point
+                        for(int j = 0; j < infoZ.length; j++){
+                            //if current is bad
+                            RobotInfo z = infoZ[i];
+                            int changeX = z.location.x - rc.getLocation().x;
+                            int changeY = z.location.y - rc.getLocation().y;
+                            if(cX == Math.abs(changeX)/changeX || cY == Math.abs(changeY)/changeY){
+                                currentC = false;
+                            }
+                            if(lX == Math.abs(changeX)/changeX || lY == Math.abs(changeY)/changeY){
+                                leftC = false;
+                            }
+                        }
+                        if(currentC && rc.canMove(current2)){
+                            rc.move(current2);
+                            moved = true;
+                            break;
+                        } else if(leftC && rc.canMove(curLeft)){
+                            rc.move(curLeft);
+                            moved = true;
+                            break;
+                        }
+                        current2.rotateRight();
+                        curLeft.rotateLeft();
+                    }
+                    if(!moved){
+                        rc.move(current);
+                    }
+                }
+            } else{
+                if(infoE.length == 0) current.opposite();
+                rc.move(current);
+            }
+
+        }
+
+
+
     }
 
     public static void loop() {
