@@ -27,7 +27,7 @@ public class Archon extends Global {
         if (archonId == 0) {
             // BASE ARCHON INIT HERE
 
-            current = Direction.NONE;
+            current = Direction.NORTH;
             placedScout = false;
 
             buildList = new ArrayList<>();
@@ -53,9 +53,6 @@ public class Archon extends Global {
             return;
         } else if (archonId == 0) {
             if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
-            /*if(rc.senseRobotAtLocation(b) != null && rc.senseRobotAtLocation(b).team.equals(myTeam)){
-                rc.repair(b);
-            }*/
                 for (int i = 0; i < 8; i++) {
                     if (rc.canBuild(current, typeToBuild)) {
                         rc.build(current, typeToBuild);
