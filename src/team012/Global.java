@@ -22,6 +22,7 @@ public class Global {
     static RobotInfo[] visibleAllies;
     static RobotInfo[] visibleZombies;
     static RobotInfo[] visibleHostiles;
+    static RobotInfo[] visibleTheirTeam;
 
     static MapLocation myLoc;
     static int roundNum;
@@ -51,6 +52,7 @@ public class Global {
         visibleZombies = rc.senseNearbyRobots(mySensorRange, Team.ZOMBIE);
         visibleHostiles = rc.senseHostileRobots(myLoc, mySensorRange);
         visibleAllies = rc.senseNearbyRobots(mySensorRange, myTeam);
+        visibleTheirTeam = rc.senseNearbyRobots(mySensorRange, enemyTeam);
     }
 
     public static int getDangerLevel() {
