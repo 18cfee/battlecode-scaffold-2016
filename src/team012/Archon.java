@@ -233,7 +233,7 @@ public class Archon extends Global {
     //Auto heal any adjacent units
 
     // Code for telling Roaming they can Build, must have used all original resources and then climbed up to a certainPoint
-    private static boolean roamingAllowedToBuild(Direction a, RobotType typeBot){
+    private static boolean roamingAllowedToBuild(){
         return (rc.getRoundNum() > 200 && rc.getTeamParts() > 150);
     }
 
@@ -251,7 +251,6 @@ public class Archon extends Global {
         rc.setIndicatorLine(destLoc, rc.getLocation(), 255, 0, 0);
 
         if (rc.isCoreReady()) {
-
             if (destination == Destination.STUCK) {
                 if (cooldown++ < 13)
                     lastDir = Path.moveSomewhereOrLeft(lastDir);
@@ -260,7 +259,13 @@ public class Archon extends Global {
             }
 
             if (destination == Destination.NONE && !scanForNearNeutral()) {
-                lastDir = Path.moveSomewhereOrLeft(lastDir);
+                if (roamingAllowedToBuild() && Path.enemyDmgAtLocation(myLoc) < 40)
+                    for (int i = 0; i < 8; i++){
+                        if (tryBuild(directions[i], RobotType.SOLDIER))
+                            break;
+                    }
+                else
+                    lastDir = Path.moveSomewhereOrLeft(lastDir);
             } else {
                 if (!tryConvertNeutral())
                     if (!Path.moveSafeTo(destLoc)) {
