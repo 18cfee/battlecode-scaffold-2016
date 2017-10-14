@@ -36,13 +36,17 @@ public class Turret extends Global {
             if(!shot && signals.length > 0){
                 for(Signal sig: signals){
                     if(sig.getTeam().equals(myTeam)){
-                        int x = sig.getMessage()[0];
-                        int y = sig.getMessage()[1];
-                        MapLocation shoot = new MapLocation(x,y);
-                        if (rc.canAttackLocation(shoot)) {
-                            rc.attackLocation(shoot);
+                        if(sig.getMessage().length > 1){
+                            int x = sig.getMessage()[0];
+                            int y = sig.getMessage()[1];
+                            if(x > 0 && y > 0){
+                                MapLocation shoot = new MapLocation(x,y);
+                                if (rc.canAttackLocation(shoot)) {
+                                    rc.attackLocation(shoot);
+                                }
+                                break;
+                            }
                         }
-                        break;
                     }
                 }
             }

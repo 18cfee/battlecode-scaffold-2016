@@ -54,6 +54,7 @@ public class Archon extends Global {
     //      2   ||  Place Scout
     //      3   ||  Place First Turret Cluster
     public static void turn() throws GameActionException{
+        HealAUnitInRange();
         if (archonId > 0) {
             roam();
             return;
@@ -62,7 +63,9 @@ public class Archon extends Global {
             if(stage == 3) {
                 normSquareTurrets();
                 clearRubble();
+                readyMove();
             } else if(stage == 2) {
+                if(!checkedNeutUnitsHere) tryConvertNeutralConvenience();
                 placeInitialScout();
             } else if(stage == 0){
                 placeGuardInitially();
@@ -70,8 +73,32 @@ public class Archon extends Global {
         }
     }
 
-    static Direction camp = null;
+    static void readyMove() throws GameActionException{
+        if(roundNum%10 == 0){
+            Direction check = Direction.NORTH;
+            boolean readyMove = true;
+            for(int i = 0; i < 8; i++){
+                MapLocation locToCheck = Path.getLocAt(check,myLoc);
+                if(rc.onTheMap(locToCheck) && (500 > (Path.senseRubbleFixBug(check)))){
+                    RobotInfo atSpot = rc.senseRobotAtLocation(locToCheck);
+                    if(null == atSpot || atSpot.team.equals(Team.ZOMBIE) || atSpot.team.equals(enemyTeam))
+                    {
+                        readyMove = false;
+                        break;
+                    }
+                }
+                check = check.rotateLeft();
+            }
+            if(readyMove){
+                // Maybe Send only to a scout with a certain ID
+                int x = placedScoutLoc.x;
+                int y = placedScoutLoc.y;
+                rc.broadcastMessageSignal(-x, -y,2);
+            }
+        }
+    }
 
+    static Direction camp = null;
     static void setStart() throws GameActionException{
         Direction tryD = Direction.NORTH;
         int dx = 0;
@@ -88,6 +115,26 @@ public class Archon extends Global {
             camp = Path.convertXY(dx,dy).opposite();
         } else{
             camp = Direction.NORTH;
+        }
+    }
+
+    static void HealAUnitInRange() throws GameActionException{
+        for(RobotInfo robot: visibleAllies){
+            if(robot.health < robot.type.maxHealth){
+                rc.repair(robot.location);
+                break;
+            }
+        }
+    }
+
+    private static boolean checkedNeutUnitsHere = false;
+    public static void tryConvertNeutralConvenience() throws GameActionException{
+        if (!rc.isCoreReady()) return;
+        RobotInfo[] adjNeutral = rc.senseNearbyRobots(2, Team.NEUTRAL);
+        if (adjNeutral.length > 0) {
+            rc.activate(adjNeutral[0].location);
+        } else{
+            checkedNeutUnitsHere = true;
         }
     }
 
@@ -134,6 +181,7 @@ public class Archon extends Global {
         if (rc.isCoreReady() && rc.canBuild(camp,RobotType.SCOUT)) {
             // Place in spot facing away from boundary (or rand if farther)
             rc.build(camp, RobotType.SCOUT);
+            placedScoutLoc = Path.getLocAt(camp,myLoc);
             stage++;
             // Move Up a level in the defense Process
         }
