@@ -73,21 +73,21 @@ public class Archon extends Global {
     static int guardsBuiltInStage = 0;
     private static void placeGuard() throws GameActionException{
         if(rc.isCoreReady()){
-            if(guardsBuiltInStage > 1){
-                stage = 2;
-            }
-            else if(guardsBuiltInStage > 0){
+            if(guardsBuiltInStage > 0){
                 buildGuard = buildGuard.opposite();
             }
             for(int i = 0; i < 8; i++){
                 if(rc.canBuild(buildGuard,RobotType.GUARD)){
                     rc.build(buildGuard,RobotType.GUARD);
+                    guardsBuiltInStage++;
+                    if(guardsBuiltInStage > 1){
+                        stage = 2;
+                    }
                     break;
                 }
                 buildGuard = buildGuard.rotateRight();
             }
         }
-        guardsBuiltInStage++;
     }
 
     static Direction currentlyClearing = null;

@@ -4,10 +4,18 @@ import battlecode.common.*;
 
 public class Guard extends Global {
 
-    public static void init() {}
+    public static void init() {
 
-    public static void turn() {
+    }
 
+    private static Direction moving = Direction.NORTH;
+    public static void turn() throws GameActionException {
+        if(rc.isCoreReady()){
+            moving = Path.moveSomewhereOrLeft(moving);
+            if(rc.canMove(moving)){
+                rc.move(moving);
+            }
+        }
     }
 
     public static void loop() {
