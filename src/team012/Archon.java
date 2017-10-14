@@ -70,23 +70,24 @@ public class Archon extends Global {
         }
     }
 
-    static MapLocation camp = null;
+    static Direction camp = null;
 
     static void setStart() throws GameActionException{
-        camp = spawnLoc;
         Direction tryD = Direction.NORTH;
+        int dx = 0;
+        int dy = 0;
         for(int i =0; i< 4;i++){
-            if(!rc.onTheMap(Path.getLocAt(tryD,camp))){
-                camp = Path.getLocAt(tryD.opposite(),camp);
+            MapLocation step = Path.getLocAt(tryD,spawnLoc);
+            if(!rc.onTheMap(Path.getLocAt(tryD,step))){
+                dx += tryD.dx;
+                dy -= tryD.dy;
             }
             tryD = tryD.rotateLeft().rotateLeft();
         }
-        for(int i =0; i< 4;i++){
-            MapLocation step = Path.getLocAt(tryD,camp);
-            if(!rc.onTheMap(Path.getLocAt(tryD,step))){
-                camp = Path.getLocAt(tryD.opposite(),camp);
-            }
-            tryD = tryD.rotateLeft().rotateLeft();
+        if(dx != 0 || dy != 0){
+            camp = Path.convertXY(dx,dy).opposite();
+        } else{
+            camp = Direction.NORTH;
         }
     }
 
@@ -130,21 +131,9 @@ public class Archon extends Global {
         if(camp == null){
             setStart();
         }
-        if (rc.isCoreReady()) {
-            // Find most rubble spot
-            Direction that = Direction.SOUTH;
-            Direction build = that;
-            double max = -1;
-            for (int i = 0; i < 8; i++) {
-                double rubAtSpot = Path.senseRubbleFixBug(that);
-                if (rc.canBuild(that, RobotType.SCOUT) && max < rubAtSpot) {
-                    max = rubAtSpot;
-                    build = that;
-                }
-                that = that.rotateLeft();
-            }
-            rc.build(build, RobotType.SCOUT);
-            placedScoutLoc = Path.getLocAt(build, rc.getLocation());
+        if (rc.isCoreReady() && rc.canBuild(camp,RobotType.SCOUT)) {
+            // Place in spot facing away from boundary (or rand if farther)
+            rc.build(camp, RobotType.SCOUT);
             stage++;
             // Move Up a level in the defense Process
         }

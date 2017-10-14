@@ -88,6 +88,17 @@ public class Path extends Global {
         }
     }
 
+    public static Direction convertXY(int x, int y){
+        Direction test = Direction.NORTH;
+        for(int i = 0; i < 8; i++){
+            if(test.dx == x && test.dy == y){
+                return test;
+            }
+            test = test.rotateLeft();
+        }
+        return Direction.NONE;
+    }
+
     public static Direction moveSomewhereOrLeft(Direction dir) throws GameActionException{
         for (int i = 0; i < 8; i++) {
             if (rc.canMove(dir)) {

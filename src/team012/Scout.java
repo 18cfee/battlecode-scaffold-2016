@@ -36,9 +36,11 @@ public class Scout extends Global {
             }
         }
         if(xShoot != 0 && yShoot != 0){
-            rc.broadcastMessageSignal(xShoot,yShoot,80);
+            rc.broadcastMessageSignal(xShoot,yShoot,7);
         }
-
+        if(rc.isCoreReady() && 49 < rc.senseRubble(rc.getLocation())){
+            rc.clearRubble(Direction.NONE);
+        }
     }
 
     public static void loop() {
