@@ -1,6 +1,7 @@
 package team012;
 
 import battlecode.common.*;
+import battlecode.world.signal.ClearRubbleSignal;
 
 import javax.xml.stream.Location;
 import java.util.ArrayList;
@@ -86,31 +87,6 @@ public class Archon extends Global {
                     break;
                 }
                 buildGuard = buildGuard.rotateRight();
-            }
-        }
-    }
-
-    static Direction currentlyClearing = null;
-    private static void clearRubble() throws GameActionException{
-        if(currentlyClearing == null){
-            //select lowest rubble in visinity
-            Direction that = Direction.NORTH;
-            Direction low = null;
-            double min = 100000;
-            for (int i = 0; i < 8; i++) {
-                double rubAtSpot = Path.senseRubbleFixBug(that);
-                if (rc.canBuild(that, RobotType.SCOUT) && min > rubAtSpot && rubAtSpot > 49) {
-                    min = rubAtSpot;
-                    low = that;
-                }
-                that = that.rotateLeft();
-            }
-            currentlyClearing = low;
-        }
-        if(currentlyClearing != null && rc.isCoreReady()) {
-            rc.clearRubble(currentlyClearing);
-            if(Path.senseRubbleFixBug(currentlyClearing) < 50){
-                currentlyClearing = null;
             }
         }
     }

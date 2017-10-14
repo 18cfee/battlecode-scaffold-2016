@@ -79,6 +79,31 @@ public class Global {
         return danger;
     }
 
+    static Direction currentlyClearing = null;
+    protected static void clearRubble() throws GameActionException{
+        if(currentlyClearing == null){
+            //select lowest rubble in visinity
+            Direction that = Direction.NORTH;
+            Direction low = null;
+            double min = 100000;
+            for (int i = 0; i < 8; i++) {
+                double rubAtSpot = Path.senseRubbleFixBug(that);
+                if (rc.canBuild(that, RobotType.SCOUT) && min > rubAtSpot && rubAtSpot > 49) {
+                    min = rubAtSpot;
+                    low = that;
+                }
+                that = that.rotateLeft();
+            }
+            currentlyClearing = low;
+        }
+        if(currentlyClearing != null && rc.isCoreReady()) {
+            rc.clearRubble(currentlyClearing);
+            if(Path.senseRubbleFixBug(currentlyClearing) < 50){
+                currentlyClearing = null;
+            }
+        }
+    }
+
     public static Direction randomDir() {
         return directions[(int)(Math.random()*8)];
     }
