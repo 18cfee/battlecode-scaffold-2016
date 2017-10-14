@@ -88,7 +88,7 @@ public class Archon extends Global {
             double max = 1;
             for (int i = 0; i < 8; i++) {
                 MapLocation check =  Path.getLocAt(that, rc.getLocation());
-                double rubAtSpot = rc.senseRubble(check);
+                double rubAtSpot = Path.senseRubbleFixBug(that);
                 System.out.println("Rubble At Spot: " + rubAtSpot + " " + that.toString());
                 System.out.println(check.x + " " + check.y + " " + rc.getLocation().x + " " + rc.getLocation().y);
                 if (rc.canBuild(that, RobotType.SCOUT) && max < rubAtSpot) {

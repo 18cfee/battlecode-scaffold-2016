@@ -2,6 +2,8 @@ package team012;
 
 import battlecode.common.*;
 
+import java.util.Map;
+
 public class Path extends Global {
 
     public static boolean moveSafeTo(MapLocation loc) throws GameActionException{
@@ -95,6 +97,32 @@ public class Path extends Global {
             dir = dir.rotateLeft();
         }
         return dir;
+    }
+
+    public static double senseRubbleFixBug (Direction sense) throws GameActionException{
+        switch(sense){
+            case NORTH:
+                sense = Direction.SOUTH;
+                break;
+            case NORTH_EAST:
+                sense = Direction.SOUTH_EAST;
+                break;
+            case NORTH_WEST:
+                sense = Direction.SOUTH_WEST;
+                break;
+            case SOUTH:
+                sense = Direction.NORTH;
+                break;
+            case SOUTH_EAST:
+                sense = Direction.NORTH_EAST;
+                break;
+            case SOUTH_WEST:
+                sense = Direction.NORTH_WEST;
+                break;
+        }
+        MapLocation old = getLocAt(sense, rc.getLocation());
+        //MapLocation senseAt = new MapLocation(old.x,old.y - 2*sense.dy);
+        return rc.senseRubble(old);
     }
 
 }
