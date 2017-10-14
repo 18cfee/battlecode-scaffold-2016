@@ -107,7 +107,7 @@ public class Archon extends Global {
             MapLocation step = Path.getLocAt(tryD,spawnLoc);
             if(!rc.onTheMap(Path.getLocAt(tryD,step))){
                 dx += tryD.dx;
-                dy -= tryD.dy;
+                dy += tryD.dy;
             }
             tryD = tryD.rotateLeft().rotateLeft();
         }
