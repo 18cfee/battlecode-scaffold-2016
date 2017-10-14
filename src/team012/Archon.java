@@ -65,16 +65,25 @@ public class Archon extends Global {
             } else if(stage == 2) {
                 placeInitialScout();
             } else if(stage == 0){
-                placeGuard();
+                placeGuardInitially();
             }
         }
     }
 
-    static MapLocation camp = spawnLoc;
+    static MapLocation camp = null;
+
     static void setStart() throws GameActionException{
+        camp = spawnLoc;
         Direction tryD = Direction.NORTH;
         for(int i =0; i< 4;i++){
             if(!rc.onTheMap(Path.getLocAt(tryD,camp))){
+                camp = Path.getLocAt(tryD.opposite(),camp);
+            }
+            tryD = tryD.rotateLeft().rotateLeft();
+        }
+        for(int i =0; i< 4;i++){
+            MapLocation step = Path.getLocAt(tryD,camp);
+            if(!rc.onTheMap(Path.getLocAt(tryD,step))){
                 camp = Path.getLocAt(tryD.opposite(),camp);
             }
             tryD = tryD.rotateLeft().rotateLeft();
@@ -83,14 +92,12 @@ public class Archon extends Global {
 
     static Direction buildGuard = Direction.NORTH;
     static int guardsBuiltInStage = 0;
-    private static void placeGuard() throws GameActionException{
+    private static void placeGuardInitially() throws GameActionException{
         if(rc.isCoreReady()){
-            if(guardsBuiltInStage > 0){
-                buildGuard = buildGuard.opposite();
-            }
             for(int i = 0; i < 8; i++){
                 if(rc.canBuild(buildGuard,RobotType.GUARD)){
                     rc.build(buildGuard,RobotType.GUARD);
+                    buildGuard = buildGuard.opposite();
                     guardsBuiltInStage++;
                     if(guardsBuiltInStage > 1){
                         stage = 2;
@@ -120,7 +127,10 @@ public class Archon extends Global {
 
     static MapLocation placedScoutLoc = null;
     private static void placeInitialScout() throws GameActionException{
-        if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
+        if(camp == null){
+            setStart();
+        }
+        if (rc.isCoreReady()) {
             // Find most rubble spot
             Direction that = Direction.SOUTH;
             Direction build = that;
