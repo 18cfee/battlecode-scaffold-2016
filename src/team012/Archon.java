@@ -28,7 +28,6 @@ public class Archon extends Global {
             // BASE ARCHON INIT HERE
 
             current = Direction.NORTH;
-            placedScout = false;
 
             buildList = new ArrayList<>();
             buildList.add(RobotType.SCOUT);
@@ -47,19 +46,48 @@ public class Archon extends Global {
         rc.setIndicatorString(2, String.valueOf(archonId));
     }
 
+    public static int stage = 0;
+    //Stage #   ||  Performing
+    //      0   ||  Send Forth Initial Gaurds
+    //      1   ||  Move Away From Wall
+    //      2   ||  Place Scout
+    //      3   ||  Place First Turret Cluster
     public static void turn() throws GameActionException{
         if (archonId > 0) {
             roam();
             return;
         } else if (archonId == 0) {
             // maybe ask about core being ready here instead of in these messages
-            if(placedScout) {
+            if(stage == 3) {
                 normSquareTurrets();
                 clearRubble();
-            } else {
+            } else if(stage == 2) {
                 placeInitialScout();
+            } else if(stage == 0){
+                placeGuard();
             }
         }
+    }
+
+    static Direction buildGuard = Direction.NORTH;
+    static int guardsBuiltInStage = 0;
+    private static void placeGuard() throws GameActionException{
+        if(rc.isCoreReady()){
+            if(guardsBuiltInStage > 1){
+                stage = 2;
+            }
+            else if(guardsBuiltInStage > 0){
+                buildGuard = buildGuard.opposite();
+            }
+            for(int i = 0; i < 8; i++){
+                if(rc.canBuild(buildGuard,RobotType.GUARD)){
+                    rc.build(buildGuard,RobotType.GUARD);
+                    break;
+                }
+                buildGuard = buildGuard.rotateRight();
+            }
+        }
+        guardsBuiltInStage++;
     }
 
     static Direction currentlyClearing = null;
@@ -88,8 +116,6 @@ public class Archon extends Global {
     }
 
     static Direction current;
-    static boolean placedScout;
-    static MapLocation placedScoutLoc = null;
     static RobotType typeToBuild = RobotType.TURRET;
     private static void normSquareTurrets() throws GameActionException{
         if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
@@ -105,12 +131,13 @@ public class Archon extends Global {
         }
     }
 
+    static MapLocation placedScoutLoc = null;
     private static void placeInitialScout() throws GameActionException{
         if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
             // Find most rubble spot
-            Direction that = Direction.NORTH;
+            Direction that = Direction.SOUTH;
             Direction build = that;
-            double max = 1;
+            double max = -1;
             for (int i = 0; i < 8; i++) {
                 double rubAtSpot = Path.senseRubbleFixBug(that);
                 if (rc.canBuild(that, RobotType.SCOUT) && max < rubAtSpot) {
@@ -121,7 +148,8 @@ public class Archon extends Global {
             }
             rc.build(build, RobotType.SCOUT);
             placedScoutLoc = Path.getLocAt(build, rc.getLocation());
-            placedScout = true;
+            stage++;
+            // Move Up a level in the defense Process
         }
     }
 
