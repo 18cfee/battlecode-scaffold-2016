@@ -52,15 +52,40 @@ public class Archon extends Global {
             roam();
             return;
         } else if (archonId == 0) {
+            // maybe ask about core being ready here instead of in these messages
             if(placedScout) {
                 normSquareTurrets();
+                clearRubble();
             } else {
                 placeInitialScout();
             }
         }
     }
 
-
+    static Direction currentlyClearing = null;
+    private static void clearRubble() throws GameActionException{
+        if(currentlyClearing == null){
+            //select lowest rubble in visinity
+            Direction that = Direction.NORTH;
+            Direction low = null;
+            double min = 100000;
+            for (int i = 0; i < 8; i++) {
+                double rubAtSpot = Path.senseRubbleFixBug(that);
+                if (rc.canBuild(that, RobotType.SCOUT) && min > rubAtSpot && rubAtSpot > 49) {
+                    min = rubAtSpot;
+                    low = that;
+                }
+                that = that.rotateLeft();
+            }
+            currentlyClearing = low;
+        }
+        if(currentlyClearing != null && rc.isCoreReady()) {
+            rc.clearRubble(currentlyClearing);
+            if(Path.senseRubbleFixBug(currentlyClearing) < 50){
+                currentlyClearing = null;
+            }
+        }
+    }
 
     static Direction current;
     static boolean placedScout;
@@ -87,10 +112,7 @@ public class Archon extends Global {
             Direction build = that;
             double max = 1;
             for (int i = 0; i < 8; i++) {
-                MapLocation check =  Path.getLocAt(that, rc.getLocation());
                 double rubAtSpot = Path.senseRubbleFixBug(that);
-                System.out.println("Rubble At Spot: " + rubAtSpot + " " + that.toString());
-                System.out.println(check.x + " " + check.y + " " + rc.getLocation().x + " " + rc.getLocation().y);
                 if (rc.canBuild(that, RobotType.SCOUT) && max < rubAtSpot) {
                     max = rubAtSpot;
                     build = that;
@@ -98,7 +120,6 @@ public class Archon extends Global {
                 that = that.rotateLeft();
             }
             rc.build(build, RobotType.SCOUT);
-            System.out.println("Rubble At Spot 2: " + build.toString());
             placedScoutLoc = Path.getLocAt(build, rc.getLocation());
             placedScout = true;
         }
