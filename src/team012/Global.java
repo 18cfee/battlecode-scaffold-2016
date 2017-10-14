@@ -9,15 +9,20 @@ public class Global {
     static Team myTeam;
     static Team enemyTeam;
 
+    static RobotType myType;
+
     static final Direction[] directions = {Direction.NORTH, Direction.NORTH_EAST, Direction.EAST, Direction.SOUTH_EAST,
             Direction.SOUTH, Direction.SOUTH_WEST, Direction.WEST, Direction.NORTH_WEST};
 
     static MapLocation[] ourArchonSpawns;
     static MapLocation[] theirArchonSpawns;
     static MapLocation spawnLoc;
+    static int spawnRound;
 
     static int myAttackRange;
     static int mySensorRange;
+    public static double myAttackPower;
+
 
     static RobotInfo[] visibleAllies;
     static RobotInfo[] visibleZombies;
@@ -28,16 +33,21 @@ public class Global {
     static int roundNum;
 
 
+
     public static void init(){
+        spawnRound = rc.getRoundNum();
         myLoc = rc.getLocation();
         myTeam = rc.getTeam();
         enemyTeam = myTeam.opponent();
 
+        myType = rc.getType();
+
         ourArchonSpawns = rc.getInitialArchonLocations(myTeam);
         theirArchonSpawns = rc.getInitialArchonLocations(enemyTeam);
 
-        myAttackRange = rc.getType().attackRadiusSquared;
-        mySensorRange = rc.getType().sensorRadiusSquared;
+        myAttackRange = myType.attackRadiusSquared;
+        mySensorRange = myType.sensorRadiusSquared;
+        myAttackPower = myType.attackPower;
         spawnLoc = rc.getLocation();
 
     }
@@ -45,10 +55,6 @@ public class Global {
     public static void update() {
         myLoc = rc.getLocation();
         roundNum = rc.getRoundNum();
-        updateVisible();
-    }
-
-    public static void updateVisible(){
         visibleZombies = rc.senseNearbyRobots(mySensorRange, Team.ZOMBIE);
         visibleHostiles = rc.senseHostileRobots(myLoc, mySensorRange);
         visibleAllies = rc.senseNearbyRobots(mySensorRange, myTeam);
