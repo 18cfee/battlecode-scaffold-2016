@@ -70,6 +70,17 @@ public class Archon extends Global {
         }
     }
 
+    static MapLocation camp = spawnLoc;
+    static void setStart() throws GameActionException{
+        Direction tryD = Direction.NORTH;
+        for(int i =0; i< 4;i++){
+            if(!rc.onTheMap(Path.getLocAt(tryD,camp))){
+                camp = Path.getLocAt(tryD.opposite(),camp);
+            }
+            tryD = tryD.rotateLeft().rotateLeft();
+        }
+    }
+
     static Direction buildGuard = Direction.NORTH;
     static int guardsBuiltInStage = 0;
     private static void placeGuard() throws GameActionException{
