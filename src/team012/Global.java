@@ -81,6 +81,9 @@ public class Global {
 
     static Direction currentlyClearing = null;
     protected static void clearRubble() throws GameActionException{
+        if(currentlyClearing != null && Path.senseRubbleFixBug(currentlyClearing) < 50){
+            currentlyClearing = null;
+        }
         if(currentlyClearing == null){
             //select lowest rubble in visinity
             Direction that = Direction.NORTH;
@@ -98,9 +101,6 @@ public class Global {
         }
         if(currentlyClearing != null && rc.isCoreReady()) {
             rc.clearRubble(currentlyClearing);
-            if(Path.senseRubbleFixBug(currentlyClearing) < 50){
-                currentlyClearing = null;
-            }
         }
     }
 
