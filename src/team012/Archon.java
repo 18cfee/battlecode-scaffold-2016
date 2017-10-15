@@ -88,9 +88,7 @@ public class Archon extends Global {
             }
             if(readyMove){
                 // Maybe Send only to a scout with a certain ID
-                int x = placedScoutLoc.x;
-                int y = placedScoutLoc.y;
-                rc.broadcastMessageSignal(-x, -y,2);
+                Comm.sendMsgMap(SCOUT_NEXT, placedScoutLoc);
             }
         }
     }
@@ -386,42 +384,35 @@ public class Archon extends Global {
         return neutrals.length > 0;
     }
 
-    public static void processSignals() throws GameActionException{
-        for(Signal s : signals) {
+    public static void processSignals() throws GameActionException {
+        for (Signal s : signals) {
             if (s.getTeam() != myTeam) continue;
             if (Comm.readSig(s)) {
-                processMsg(Comm.channel, Comm.loc);
+                switch (Comm.channel) {
+                    case ENEMY_ARCHON_LOCATION:
+
+
+                        break;
+                    case EMPTY:
+
+
+                        break;
+
+                    case FORM_UNIT_ON_ME:
+
+
+                        break;
+
+                    case SCOUT_NEXT:
+
+
+                        break;
+                    case TURRET_SHOOT_HERE:
+                        rc.setIndicatorString(0, "TURRET_SHOOT_HERE " + mapLocationToString(Comm.loc));
+
+                }
             }
         }
-    }
-
-    // set your flags or do something
-    private static void processMsg(int channel, MapLocation loc) {
-
-        switch (channel) {
-            case ENEMY_ARCHON_LOCATION:
-
-
-                break;
-            case EMPTY:
-
-
-                break;
-
-            case FORM_UNIT_ON_ME:
-
-
-                break;
-
-            case SCOUT_NEXT:
-
-
-                break;
-            case TURRET_SHOOT_HERE:
-                rc.setIndicatorString(0, "TURRET_SHOOT_HERE "+mapLocationToString(Comm.loc));
-
-        }
-
     }
 
 
