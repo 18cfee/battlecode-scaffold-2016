@@ -79,6 +79,7 @@ public class Soldier extends Global {
     }
 
     public static boolean tryAttack() throws GameActionException{
+        if (!rc.isWeaponReady()) return false;
         RobotInfo[] attackableHostiles = rc.senseHostileRobots(myLoc, myAttackRange);
         if (attackableHostiles.length == 0) return false;
 
