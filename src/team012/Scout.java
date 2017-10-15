@@ -8,8 +8,8 @@ public class Scout extends Global {
 
     public static void turn() throws GameActionException{
         int minSD = 100;
-        int xShoot = 0;
-        int yShoot = 0;
+        int xShoot = -100;
+        int yShoot = -100;
         int myX = rc.getLocation().x;
         int myY = rc.getLocation().y;
         for(RobotInfo enemy : visibleHostiles) {
@@ -37,12 +37,13 @@ public class Scout extends Global {
                 yShoot = y;
             }
         }
-        Signal[] signals = rc.emptySignalQueue();
-        if(xShoot != 0 && yShoot != 0){
-            rc.broadcastMessageSignal(xShoot,yShoot,7);
-        } else {
-            checkMessages(signals);
+
+        if(xShoot != -100 && yShoot != -100) {
+            Comm.sendMsgXY(TURRET_SHOOT_HERE, xShoot, yShoot);
         }
+
+        checkMessages();
+
         if(rc.isCoreReady()){
             if(49 < rc.senseRubble(rc.getLocation())){
                 rc.clearRubble(Direction.NONE);
@@ -59,25 +60,19 @@ public class Scout extends Global {
     }
 
     private static boolean iNeedToMove = false;
-    public static void checkMessages(Signal[] signals) throws GameActionException{
-        for(Signal message: signals){
-            if(message.getTeam().equals(myTeam)){
-                System.out.println("Got a message from my Team");
-                int[] nums = message.getMessage();
-                if(nums.length > 1){
-                    int x = nums[0];
-                    int y = nums[1];
-                    int mx = myLoc.x;
-                    int my = myLoc.y;
-                    System.out.println("Message X: " + x + " Y: " + y);
-                    System.out.println("My X: " + mx + " Y: " + my);
-                    if(mx == -x && my == -y){
+    public static void checkMessages() throws GameActionException{
+        for(Signal message: signals) {
+            if (Comm.readSig(message)) {
+                if (Comm.channel == SCOUT_NEXT) {
+                    if (Comm.loc.equals(myLoc) ) {
                         iNeedToMove = true;
                         break;
                     }
                 }
             }
         }
+
+
     }
 
     public static void loop() {
