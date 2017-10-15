@@ -52,7 +52,7 @@ public class Soldier extends Global {
             try {
                 // BEGIN TURN
                 update();
-                //turn();
+                turn();
                 // END OF TURN
             } catch(Exception e) {
                 e.printStackTrace();
