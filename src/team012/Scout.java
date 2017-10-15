@@ -6,8 +6,8 @@ public class Scout extends Global {
 
     public static void turn() throws GameActionException{
         int minSD = 100;
-        int xShoot = 0;
-        int yShoot = 0;
+        int xShoot = -100;
+        int yShoot = -100;
         int myX = rc.getLocation().x;
         int myY = rc.getLocation().y;
         for(RobotInfo enemy : visibleHostiles) {
@@ -35,8 +35,8 @@ public class Scout extends Global {
                 yShoot = y;
             }
         }
-        if(xShoot != 0 && yShoot != 0){
-            rc.broadcastMessageSignal(xShoot,yShoot,7);
+        if(xShoot != -100 && yShoot != -100){
+            Comm.sendMsgXY(TURRET_SHOOT_HERE, xShoot, yShoot);
         }
         if(rc.isCoreReady() && 49 < rc.senseRubble(rc.getLocation())){
             rc.clearRubble(Direction.NONE);

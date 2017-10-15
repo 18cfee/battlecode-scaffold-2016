@@ -32,13 +32,11 @@ public class Turret extends Global {
                     }
                 }
             }
-            Signal[] signals = rc.emptySignalQueue();
-            if(!shot && signals.length > 0){
+            if(!shot){
                 for(Signal sig: signals){
-                    if(sig.getTeam().equals(myTeam)){
-                        int x = sig.getMessage()[0];
-                        int y = sig.getMessage()[1];
-                        MapLocation shoot = new MapLocation(x,y);
+                    if (Comm.readSig(sig) && Comm.channel == TURRET_SHOOT_HERE) {
+                        rc.setIndicatorLine(myLoc,Comm.loc, 255,0,0);
+                        MapLocation shoot = Comm.loc;
                         if (rc.canAttackLocation(shoot)) {
                             rc.attackLocation(shoot);
                         }
