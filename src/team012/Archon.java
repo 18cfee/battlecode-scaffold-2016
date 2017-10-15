@@ -348,17 +348,19 @@ public class Archon extends Global {
                 }
             } else {
                 if (getOutnumberFactor() < 1) {
-                    if (healthLost < 10 && !isZombieAdjacent())
-                        if(roamingAllowedToBuild())
-                            tryBuildAnyDir(Path.awayEnemyDirection.opposite(),RobotType.SOLDIER);
-                        if (rc.isCoreReady())
-                            clearRubble(Path.awayEnemyDirection);
+                    if (healthLost < 5 && !isZombieAdjacent()) {
+                        if (roamingAllowedToBuild())
+                            if (!tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER))
+                                if (!Path.moveTo(ourArchonSpawns[archonId]))
+                                    Path.runFromEnemies();
+                    }
                 } else {
                     if(!Path.runFromEnemies())
                         if (roundNum % 2 == 0)
                             clearRubble(Path.awayEnemyDirection);
                         else
                             tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.GUARD);
+
                 }
             }
         }
