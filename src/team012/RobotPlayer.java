@@ -37,6 +37,10 @@ public class RobotPlayer {
                 Guard.init();
                 Guard.loop();
                 break;
+            case VIPER:
+                Viper.init();
+                Viper.loop();
+                break;
             default:
                 DefaultBot.init();
                 DefaultBot.loop();
