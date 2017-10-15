@@ -2,9 +2,12 @@ package team012;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.Map;
 
 public class Path extends Global {
+
+    public static Direction lastDirMoved = Direction.NONE;
 
     public static boolean moveSafeTo(MapLocation loc) throws GameActionException{
         Direction dir = myLoc.directionTo(loc);
@@ -134,6 +137,50 @@ public class Path extends Global {
         MapLocation old = getLocAt(sense, rc.getLocation());
         //MapLocation senseAt = new MapLocation(old.x,old.y - 2*sense.dy);
         return rc.senseRubble(old);
+    }
+
+    // DO NOT CALL THIS WITH NO VISBILE HOSTILES!!!!
+    public static boolean runFromEnemies() throws GameActionException{
+        MapLocation enemyLoc = getAverageLoc(visibleHostiles);
+        Direction oppositeVector = myLoc.directionTo(enemyLoc).opposite();
+        if (tryMoveDirTimes(oppositeVector,6));
+            return true;
+
+
+    }
+
+    public static MapLocation getAverageLoc(RobotInfo[] robotArr){
+        int length = robotArr.length;
+        int b = Clock.getBytecodeNum();
+        if (length > 0) {
+            int xAvg = 0;
+            int yAvg = 0;
+            for (RobotInfo robot : robotArr) {
+                MapLocation enemyLoc = robot.location;
+                xAvg += enemyLoc.x;
+                yAvg += enemyLoc.y;
+            }
+            xAvg =  Math.round((float)xAvg/length);
+            yAvg = Math.round((float)yAvg/length);
+            rc.setIndicatorString(1, String.format("Bytecodes used by AverageLoc %d ", Clock.getBytecodeNum()-b));
+            return new MapLocation(xAvg,yAvg);
+        } else {
+            return myLoc;
+        }
+    }
+
+    public static boolean tryMoveDirTimes(Direction baseDir,int trys) throws GameActionException{
+        Direction[] tryDirs = {baseDir, baseDir.rotateRight(), baseDir.rotateLeft(), baseDir.rotateLeft().rotateLeft(),
+                baseDir.rotateRight().rotateRight(),baseDir.rotateLeft().rotateLeft()};
+
+        for (int i = 0; i < Math.min(trys, 6); i++) {
+            if (rc.canMove(tryDirs[i])) {
+                rc.move(tryDirs[i]);
+                lastDirMoved = tryDirs[i];
+                return true;
+            }
+        }
+        return false;
     }
 
 }
