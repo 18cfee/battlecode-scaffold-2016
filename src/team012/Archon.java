@@ -329,7 +329,7 @@ public class Archon extends Global {
             }
 
             if (destination == Destination.NONE && !scanForNearNeutral()) {
-                if (roamingAllowedToBuild() && Path.enemyDmgAtLocation(myLoc) < 40)
+                if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
                     for (int i = 0; i < 8; i++){
                         if (tryBuild(directions[i], RobotType.SOLDIER))
                             break;
