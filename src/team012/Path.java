@@ -7,20 +7,25 @@ import java.util.Map;
 
 public class Path extends Global {
 
-    public static Direction lastDirMoved = Direction.NONE;
+    static Direction lastDirMoved = Direction.NONE;
+    static Direction awayEnemyDirection = Direction.NONE;
+    static Direction allyDirection = Direction.NONE;
 
     public static boolean moveSafeTo(MapLocation loc) throws GameActionException{
         Direction dir = myLoc.directionTo(loc);
         if (rc.canMove(dir) && !canEnemyAttack(getLocAt(dir, myLoc))) {
             rc.move(dir);
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateLeft()) && !canEnemyAttack(getLocAt(dir.rotateLeft(), myLoc))) {
             rc.move(dir.rotateLeft());
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateRight()) && !canEnemyAttack(getLocAt(dir.rotateRight(), myLoc))) {
             rc.move(dir);
+            lastDirMoved = dir;
             return true;
         }
         return false;
@@ -109,6 +114,7 @@ public class Path extends Global {
         for (int i = 0; i < 8; i++) {
             if (rc.canMove(dir)) {
                 rc.move(dir);
+                lastDirMoved = dir;
                 return dir;
             }
             dir = dir.rotateLeft();
@@ -144,20 +150,20 @@ public class Path extends Global {
 
     public static boolean runFromEnemies() throws GameActionException{
         MapLocation enemyLoc = getAverageLoc(visibleHostiles);
-        Direction oppositeVector = myLoc.directionTo(enemyLoc).opposite();
-        if (tryMoveDir(oppositeVector))
+        awayEnemyDirection = myLoc.directionTo(enemyLoc).opposite();
+        if (tryMoveDir(awayEnemyDirection))
             return true;
 
-        return tryMoveDirTimes(oppositeVector, 6);
+        return tryMoveDirTimes(awayEnemyDirection, 6);
     }
 
     public static boolean runToAllies() throws GameActionException {
         MapLocation allyLoc = getAverageLoc(visibleAllies);
-        Direction allyVector = myLoc.directionTo(allyLoc);
-        if (tryMoveDir(allyVector))
+        allyDirection = myLoc.directionTo(allyLoc);
+        if (tryMoveDir(allyDirection))
             return true;
 
-        return tryMoveDir(allyVector);
+        return tryMoveDir(allyDirection);
     }
 
     public static MapLocation getAverageLoc(RobotInfo[] robotArr){

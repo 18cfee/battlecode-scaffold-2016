@@ -9,7 +9,7 @@ public class Archon extends Global {
 
     static ArrayList<RobotType> buildList;
 
-    static enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
+    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
     static Destination destination;
     static MapLocation destLoc;
 
@@ -310,46 +310,59 @@ public class Archon extends Global {
 
 
     ///////////////////////////////////// Keegan Below This point ////////////////////////////////////
-    private static Direction lastDir = myLoc.directionTo(theirArchonSpawns[0]);
-    private static MapLocation lastLocation = null;
     private static int cooldown;
-
-
 
     private static void roam() throws GameActionException {
 
         rc.setIndicatorLine(destLoc, rc.getLocation(), 255, 0, 0);
-
         if (rc.isCoreReady()) {
-            if (destination == Destination.STUCK) {
-                if (cooldown++ < 13)
-                    lastDir = Path.moveSomewhereOrLeft(lastDir);
-                else
-                    destination = Destination.NONE;
-            }
+            if (healthLost < 1) {
 
-            if (destination == Destination.NONE && !scanForNearNeutral()) {
-                if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
-                    for (int i = 0; i < 8; i++){
-                        if (tryBuild(directions[i], RobotType.SOLDIER))
-                            break;
-                    }
-                else
-                    lastDir = Path.moveSomewhereOrLeft(lastDir);
-            } else {
-                if (!tryConvertNeutral())
-                    if (!Path.moveSafeTo(destLoc)) {
-                        Path.moveTo(destLoc);
-                        if (lastLocation == rc.getLocation()) {
-                            destination = Destination.STUCK;
-                            lastDir = rc.getLocation().directionTo(destLoc).opposite();
-                            cooldown = 0;
+                if (destination == Destination.STUCK) {
+                    if (cooldown++ < 13)
+                        Path.moveRandom();
+                    else
+                        destination = Destination.NONE;
+                }
+
+                if (destination == Destination.NONE && !scanForNearNeutral()) {
+                    if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
+                        tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER);
+                    else
+                        Path.moveRandom();
+                } else {
+                    if (!tryConvertNeutral())
+                        if (!Path.moveSafeTo(destLoc)) {
+                            Path.moveTo(destLoc);
+                            if (lastLoc == rc.getLocation()) {
+                                if (myLoc.distanceSquaredTo(destLoc) < 16) {
+                                    clearRubble(myLoc.directionTo(destLoc));
+                                } else {
+                                    destination = Destination.STUCK;
+                                    Path.lastDirMoved = rc.getLocation().directionTo(destLoc).opposite();
+                                    cooldown = 0;
+                                }
+                            }
                         }
-                    }
 
+                }
+            } else {
+                if (getOutnumberFactor() < 1) {
+                    if (healthLost < 10 && !isZombieAdjacent())
+                        if(roamingAllowedToBuild())
+                            tryBuildAnyDir(Path.awayEnemyDirection.opposite(),RobotType.SOLDIER);
+                        if (rc.isCoreReady())
+                            clearRubble(Path.awayEnemyDirection);
+                } else {
+                    if(!Path.runFromEnemies())
+                        if (roundNum % 2 == 0)
+                            clearRubble(Path.awayEnemyDirection);
+                        else
+                            tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.GUARD);
+                }
             }
-            lastLocation = rc.getLocation();
         }
+
     }
 
     public boolean buildFromList(Direction dir) throws GameActionException {
@@ -369,6 +382,18 @@ public class Archon extends Global {
         }
         return false;
     }
+    static boolean tryBuildAnyDir(Direction base, RobotType type) throws GameActionException{
+        if (base == Direction.NONE || base ==  Direction.OMNI)
+            base = randomDir();
+        for (int i = 0; i < 8; i++) {
+            if(rc.canBuild(base, type)) {
+                rc.build(base, type);
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public static boolean tryConvertNeutral() throws GameActionException{
         if (!rc.isCoreReady())
@@ -429,6 +454,15 @@ public class Archon extends Global {
                 }
             }
         }
+    }
+
+    static boolean isZombieAdjacent() {
+        RobotInfo[] hostiles = rc.senseHostileRobots(myLoc,1);
+        for (RobotInfo robot : hostiles) {
+            if (robot.team == Team.ZOMBIE)
+                return true;
+        }
+        return false;
     }
 
 

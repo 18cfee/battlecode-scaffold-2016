@@ -16,21 +16,14 @@ public class Soldier extends Global {
     private enum State {CAMP_ARCHON, EXPLORE}
     private static State state;
 
-    private static double lastHp;
 
     public static void init() {
 
         movDir = randomDir();
         lastHp = rc.getHealth();
-        holdPositionRound = 0;
     }
 
-    private static int holdPositionRound;
-
     private static void turn() throws GameActionException{
-
-        double enemyRatio = getOutnumberFactor();
-        double healthLost = lastHp-rc.getHealth();
 
         if(rc.isCoreReady()) {
             if (enemyRatio < 0.8f) {
