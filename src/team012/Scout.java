@@ -2,8 +2,6 @@ package team012;
 
 import battlecode.common.*;
 
-import java.util.HashSet;
-
 public class Scout extends Global {
 
     public static void turn() throws GameActionException{
