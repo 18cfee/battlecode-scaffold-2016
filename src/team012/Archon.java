@@ -58,14 +58,28 @@ public class Archon extends Global {
         } else if (archonId == 0) {
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
+                moveToScout();
                 normSquareTurrets();
                 clearRubble();
                 readyMove();
-            } else if(stage == 2) {
+            }  else if(stage == 2) {
                 if(!checkedNeutUnitsHere) tryConvertNeutralConvenience();
                 placeInitialScout();
             } else if(stage == 0){
                 placeGuardInitially();
+            }
+        }
+    }
+
+    static void moveToScout() throws GameActionException{
+        Direction moveTo = myLoc.directionTo(placedScoutLoc);
+        if(rc.isCoreReady() && rc.canMove(moveTo)){
+            rc.move(moveTo);
+            for(RobotInfo ally: visibleAllies){
+                if(ally.ID == placedScoutId){
+                    placedScoutLoc = ally.location;
+                    break;
+                }
             }
         }
     }
@@ -169,6 +183,7 @@ public class Archon extends Global {
     }
 
     static MapLocation placedScoutLoc = null;
+    static int placedScoutId = -1;
     private static void placeInitialScout() throws GameActionException{
         if(camp == null){
             setStart();
@@ -177,6 +192,7 @@ public class Archon extends Global {
             // Place in spot facing away from boundary (or rand if farther)
             rc.build(camp, RobotType.SCOUT);
             placedScoutLoc = Path.getLocAt(camp,myLoc);
+            placedScoutId = rc.senseRobotAtLocation(placedScoutLoc).ID;
             stage++;
             // Move Up a level in the defense Process
         }
