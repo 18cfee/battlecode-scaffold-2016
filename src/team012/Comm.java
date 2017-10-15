@@ -30,9 +30,8 @@ public class Comm extends Global{
         if (s.getMessage() == null || s.getTeam() != myTeam)
             return false;
 
-        int test = s.getMessage()[0];
         int y = s.getMessage()[1]; // TEAM SHOULD BE OUR TEAM
-        int x = y >> 16;
+        int x = y >>> 16;
         y = y & 0x0000FFFF;
         channel = s.getMessage()[0];
         loc = new MapLocation(x, y);
