@@ -69,8 +69,6 @@ public class Scout extends Global {
                 }
             }
         }
-
-
     }
 
     public static void loop() {

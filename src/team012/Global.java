@@ -29,8 +29,7 @@ public class Global {
 
     static int myAttackRange;
     static int mySensorRange;
-    public static double myAttackPower;
-
+    static double myAttackPower;
 
     static RobotInfo[] visibleAllies;
     static RobotInfo[] visibleZombies;
@@ -39,6 +38,11 @@ public class Global {
 
     static MapLocation myLoc;
     static int roundNum;
+    static double lastHp;
+    static double enemyRatio;
+    static double healthLost;
+    static double myHp;
+    static MapLocation lastLoc;
 
     static Signal[] signals;
 
@@ -57,6 +61,7 @@ public class Global {
         mySensorRange = myType.sensorRadiusSquared;
         myAttackPower = myType.attackPower;
         spawnLoc = rc.getLocation();
+        lastLoc = spawnLoc;
 
         Comm.init();
     }
@@ -69,9 +74,13 @@ public class Global {
         visibleAllies = rc.senseNearbyRobots(mySensorRange, myTeam);
         visibleTheirTeam = rc.senseNearbyRobots(mySensorRange, enemyTeam);
         signals = rc.emptySignalQueue();
+
+        myHp = rc.getHealth();
+        healthLost = lastHp-myHp;
+        enemyRatio = getOutnumberFactor();
     }
 
-    public static int getDangerLevel() {
+    public static int getDangerFactor() {
         int danger = 0;
         for (RobotInfo robot : visibleZombies) {
             if(robot.type == RobotType.BIGZOMBIE) {
@@ -87,6 +96,10 @@ public class Global {
             }
         }
         return danger;
+    }
+
+    public static double getOutnumberFactor() {
+        return ((double)visibleHostiles.length + 1) / (visibleAllies.length +1);
     }
 
     static Direction currentlyClearing = null;
@@ -111,6 +124,14 @@ public class Global {
         }
         if(currentlyClearing != null && rc.isCoreReady()) {
             rc.clearRubble(currentlyClearing);
+        }
+    }
+
+    // UR CORE BETTER BE READY DUDDEEE
+    protected static void clearRubble(Direction dir) throws GameActionException{
+        MapLocation clearLocation = Path.getLocAt(dir, myLoc);
+        if (rc.senseRubble(clearLocation) > 0) {
+            rc.clearRubble(dir);
         }
     }
 

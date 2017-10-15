@@ -8,43 +8,60 @@ import java.util.Random;
 public class Soldier extends Global {
 
     static Direction movDir;
+    public static final double SOLDIER_HP = 60f;
+
+    private static boolean IS_GROUPED;
+    private static int groupLeaderID;
+
+    private enum State {CAMP_ARCHON, EXPLORE}
+    private static State state;
+
 
     public static void init() {
+
         movDir = randomDir();
+        lastHp = rc.getHealth();
     }
 
     private static void turn() throws GameActionException{
 
-        double potentialDmg = Path.enemyDmgAtLocation(myLoc);
-
-        if(potentialDmg < 1) {
-            if (rc.isCoreReady()) {
-                if (!tryAttack()) {
-                    // IF WE CANT ATTACK ANYTHING WE KEEP MOVING
-                    movDir = Path.moveSomewhereOrLeft(movDir);
+        if(rc.isCoreReady()) {
+            if (enemyRatio < 0.8f) {
+                if (visibleHostiles.length == 0) {
+                    // explore or some SHIT!!!
+                    Path.moveRandom();
+                } else {
+                    Direction enemyVector = myLoc.directionTo(Path.getAverageLoc(visibleHostiles));
+                    if (healthLost < 6)
+                        if (!tryAttack())
+                            Path.runToAllies();
+                        else {
+                            Path.runToAllies();
+                        }
                 }
-            }
-        } else if(potentialDmg < rc.getHealth()){
-            if (rc.isCoreReady()) {
-                if (!tryAttack()) {
-                    movDir = randomDir();
-                    if(!Path.tryMoveDir(movDir))
-                        movDir = Path.moveSomewhereOrLeft(movDir);
-                }
-            }
-        } else {            //if (potentialDmg > rc.getHealth()) {
-            if (rc.isCoreReady()) {
-                //move to safer spot
-                Direction awayFromHostile = myLoc.directionTo(visibleHostiles[0].location).opposite();
-                if (!Path.moveSafeTo(Path.getLocAt(awayFromHostile, myLoc))) ; // VISIBLE HOSTILES SHOULD NOT BE EMPTY
-                    if (!Path.tryMoveDir(awayFromHostile))
+                // we outnumbered almost 2-1
+            } else if (enemyRatio > 1.8f) {
+                if (!Path.runFromEnemies());
+                    tryAttack();
+            } else {
+                if (healthLost < 6) {
+                    if (!tryAttack())
+                        if (roundNum % 3 == 0)
+                            if (visibleAllies.length < 1)
+                                Path.runFromEnemies();
+                            else
+                                Path.runToAllies();
+                } else {
+                    if (!Path.runFromEnemies())
                         tryAttack();
-
+                }
             }
         }
 
-        if(rc.isCoreReady())
+        if(rc.isCoreReady()) {
             clearRubble();
+        }
+
     }
 
     public static void loop() {
@@ -123,10 +140,9 @@ public class Soldier extends Global {
     }
 
     public static void getSignals(){
-        for(Signal s : rc.emptySignalQueue()) {
+        for(Signal s : signals) {
             if (s.getTeam() == myTeam) {
-                int[] msg = s.getMessage();
-                MapLocation msgPoint = new MapLocation(msg[0], msg[1]);
+
             }
         }
     }

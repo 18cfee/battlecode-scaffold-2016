@@ -2,22 +2,30 @@ package team012;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.Map;
 
 public class Path extends Global {
+
+    static Direction lastDirMoved = Direction.NONE;
+    static Direction awayEnemyDirection = Direction.NONE;
+    static Direction allyDirection = Direction.NONE;
 
     public static boolean moveSafeTo(MapLocation loc) throws GameActionException{
         Direction dir = myLoc.directionTo(loc);
         if (rc.canMove(dir) && !canEnemyAttack(getLocAt(dir, myLoc))) {
             rc.move(dir);
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateLeft()) && !canEnemyAttack(getLocAt(dir.rotateLeft(), myLoc))) {
             rc.move(dir.rotateLeft());
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateRight()) && !canEnemyAttack(getLocAt(dir.rotateRight(), myLoc))) {
             rc.move(dir);
+            lastDirMoved = dir;
             return true;
         }
         return false;
@@ -31,14 +39,17 @@ public class Path extends Global {
     public static boolean tryMoveDir(Direction dir) throws GameActionException{
         if (rc.canMove(dir)) {
             rc.move(dir);
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateLeft())) {
             rc.move(dir.rotateLeft());
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateRight())) {
             rc.move(dir.rotateRight());
+            lastDirMoved = dir;
             return true;
         }
 
@@ -103,6 +114,7 @@ public class Path extends Global {
         for (int i = 0; i < 8; i++) {
             if (rc.canMove(dir)) {
                 rc.move(dir);
+                lastDirMoved = dir;
                 return dir;
             }
             dir = dir.rotateLeft();
@@ -134,6 +146,66 @@ public class Path extends Global {
         MapLocation old = getLocAt(sense, rc.getLocation());
         //MapLocation senseAt = new MapLocation(old.x,old.y - 2*sense.dy);
         return rc.senseRubble(old);
+    }
+
+    public static boolean runFromEnemies() throws GameActionException{
+        MapLocation enemyLoc = getAverageLoc(visibleHostiles);
+        awayEnemyDirection = myLoc.directionTo(enemyLoc).opposite();
+        if (tryMoveDir(awayEnemyDirection))
+            return true;
+
+        return tryMoveDirTimes(awayEnemyDirection, 6);
+    }
+
+    public static boolean runToAllies() throws GameActionException {
+        MapLocation allyLoc = getAverageLoc(visibleAllies);
+        allyDirection = myLoc.directionTo(allyLoc);
+        if (tryMoveDir(allyDirection))
+            return true;
+
+        return tryMoveDir(allyDirection);
+    }
+
+    public static MapLocation getAverageLoc(RobotInfo[] robotArr){
+        int length = robotArr.length;
+        int b = Clock.getBytecodeNum();
+        if (length > 0) {
+            int xAvg = 0;
+            int yAvg = 0;
+            for (RobotInfo robot : robotArr) {
+                MapLocation enemyLoc = robot.location;
+                xAvg += enemyLoc.x;
+                yAvg += enemyLoc.y;
+            }
+            xAvg =  Math.round((float)xAvg/length);
+            yAvg = Math.round((float)yAvg/length);
+            rc.setIndicatorString(1, String.format("Bytecodes used by AverageLoc %d ", Clock.getBytecodeNum()-b));
+            return new MapLocation(xAvg,yAvg);
+        } else {
+            return myLoc;
+        }
+    }
+
+    public static boolean tryMoveDirTimes(Direction baseDir,int trys) throws GameActionException{
+        Direction[] tryDirs = {baseDir, baseDir.rotateRight(), baseDir.rotateLeft(), baseDir.rotateLeft().rotateLeft(),
+                baseDir.rotateRight().rotateRight(),baseDir.rotateLeft().rotateLeft()};
+
+        for (int i = 0; i < Math.min(trys, 6); i++) {
+            if (rc.canMove(tryDirs[i])) {
+                rc.move(tryDirs[i]);
+                lastDirMoved = tryDirs[i];
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean moveRandom() throws GameActionException{
+        if (lastDirMoved == Direction.NONE)
+            lastDirMoved = randomDir();
+        if (!tryMoveDir(lastDirMoved))
+            tryMoveDirTimes(randomDir(), 6);
+        return false;
     }
 
 }
