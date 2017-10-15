@@ -294,6 +294,11 @@ public class Archon extends Global {
                 update();
 //                processSignals();
                 turn();
+                if(visibleAllies.length > 0) {
+                    int b = 3000 - Clock.getBytecodeNum();
+                    if (b > 0)
+                        sendEnemyLocations(Math.min((int) Math.floor(b / 100), 10));
+                }
                 // END OF TURN
             } catch(Exception e) {
                 e.printStackTrace();
@@ -314,6 +319,16 @@ public class Archon extends Global {
 
     ///////////////////////////////////// Keegan Below This point ////////////////////////////////////
     private static int cooldown;
+
+    private static void sendEnemyLocations(int n) throws GameActionException{
+        int msgsSent = 0;
+        for (RobotInfo hostile : visibleHostiles) {
+            if (msgsSent < n) {
+                Comm.sendRobot(ENEMY_HERE, hostile);
+                msgsSent++;
+            }
+        }
+    }
 
     private static void roam() throws GameActionException {
 
