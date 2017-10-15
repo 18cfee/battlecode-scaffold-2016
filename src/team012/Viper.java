@@ -3,18 +3,18 @@ package team012;
 import battlecode.common.*;
 
 // this class is for bots that dont have a specific class built for them at this time
-public class DefaultBot extends Global{
+public class Viper extends Global{
 
-    public static Direction lastDir;
     public static void init() {
-        lastDir = myLoc.directionTo(theirArchonSpawns[0]);
     }
 
     public static void turn() throws GameActionException {
-        if (healthLost < 1)
-            Path.moveRandom();
-        else
-            Path.runFromEnemies();
+        rc.setIndicatorString(0, "I'm a viper!");
+        if (rc.isCoreReady()) {
+            if (!Soldier.tryAttack())
+                Path.moveSomewhereOrLeft(Path.lastDirMoved);
+
+        }
     }
 
     public static void loop() {

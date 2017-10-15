@@ -12,6 +12,8 @@ public class Archon extends Global {
     enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
     static Destination destination;
     static MapLocation destLoc;
+    static MapLocation lastLoc;
+
 
     static int archonId;
     // Just for testing out healing
@@ -128,7 +130,7 @@ public class Archon extends Global {
     }
 
     static void HealAUnitInRange() throws GameActionException{
-        for(RobotInfo robot: visibleAllies){
+        for(RobotInfo robot: rc.senseNearbyRobots(myAttackRange, myTeam)){
             if(robot.health < robot.type.maxHealth){
                 rc.repair(robot.location);
                 break;
@@ -316,11 +318,10 @@ public class Archon extends Global {
 
         rc.setIndicatorLine(destLoc, rc.getLocation(), 255, 0, 0);
         if (rc.isCoreReady()) {
-            if (healthLost < 1) {
-
                 if (destination == Destination.STUCK) {
                     if (cooldown++ < 13)
-                        Path.moveRandom();
+                        if (!Path.runFromEnemies())
+                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
                     else
                         destination = Destination.NONE;
                 }
@@ -328,42 +329,37 @@ public class Archon extends Global {
                 if (destination == Destination.NONE && !scanForNearNeutral()) {
                     if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
                         tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER);
-                    else
-                        Path.moveRandom();
+                    else if (healthLost > 5)
+                        if (!Path.runFromEnemies())
+                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
                 } else {
+                    if (getOutnumberFactor() > 2)
+                        if (!Path.runFromEnemies())
+                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
+
                     if (!tryConvertNeutral())
                         if (!Path.moveSafeTo(destLoc)) {
                             Path.moveTo(destLoc);
                             if (lastLoc == rc.getLocation()) {
-                                if (myLoc.distanceSquaredTo(destLoc) < 16) {
+                                if (myLoc.distanceSquaredTo(destLoc) < 4 &&
+                                        rc.senseRubble(Path.getLocAt(myLoc.directionTo(destLoc),myLoc)) < 100)
                                     clearRubble(myLoc.directionTo(destLoc));
-                                } else {
-                                    destination = Destination.STUCK;
-                                    Path.lastDirMoved = rc.getLocation().directionTo(destLoc).opposite();
-                                    cooldown = 0;
-                                }
+                            } else {
+                                destination = Destination.STUCK;
+                                Path.lastDirMoved = rc.getLocation().directionTo(destLoc).opposite();
+                                cooldown = 0;
                             }
+
                         }
 
                 }
-            } else {
-                if (getOutnumberFactor() < 1) {
-                    if (healthLost < 5 && !isZombieAdjacent()) {
-                        if (roamingAllowedToBuild())
-                            if (!tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER))
-                                if (!Path.moveTo(ourArchonSpawns[archonId]))
-                                    Path.runFromEnemies();
-                    }
-                } else {
-                    if(!Path.runFromEnemies())
-                        if (roundNum % 2 == 0)
-                            clearRubble(Path.awayEnemyDirection);
-                        else
-                            tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.GUARD);
 
-                }
-            }
         }
+        if (rc.isCoreReady())
+            if (!Path.moveRandom())
+                Path.moveSomewhereOrLeft(Path.lastDirMoved);
+
+        lastLoc = rc.getLocation();
 
     }
 

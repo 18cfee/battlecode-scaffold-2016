@@ -42,7 +42,6 @@ public class Global {
     static double enemyRatio;
     static double healthLost;
     static double myHp;
-    static MapLocation lastLoc;
 
     static Signal[] signals;
 
@@ -61,7 +60,9 @@ public class Global {
         mySensorRange = myType.sensorRadiusSquared;
         myAttackPower = myType.attackPower;
         spawnLoc = rc.getLocation();
-        lastLoc = spawnLoc;
+
+        myHp = rc.getHealth();
+        lastHp = myHp;
 
         Comm.init();
     }

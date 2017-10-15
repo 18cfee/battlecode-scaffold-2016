@@ -7,9 +7,9 @@ import java.util.Map;
 
 public class Path extends Global {
 
-    static Direction lastDirMoved = Direction.NONE;
-    static Direction awayEnemyDirection = Direction.NONE;
-    static Direction allyDirection = Direction.NONE;
+    static Direction lastDirMoved = Direction.EAST;
+    static Direction awayEnemyDirection = Direction.EAST;
+    static Direction allyDirection = Direction.EAST;
 
     public static boolean moveSafeTo(MapLocation loc) throws GameActionException{
         Direction dir = myLoc.directionTo(loc);
