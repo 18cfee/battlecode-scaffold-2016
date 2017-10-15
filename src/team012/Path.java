@@ -34,14 +34,17 @@ public class Path extends Global {
     public static boolean tryMoveDir(Direction dir) throws GameActionException{
         if (rc.canMove(dir)) {
             rc.move(dir);
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateLeft())) {
             rc.move(dir.rotateLeft());
+            lastDirMoved = dir;
             return true;
         }
         if (rc.canMove(dir.rotateRight())) {
             rc.move(dir.rotateRight());
+            lastDirMoved = dir;
             return true;
         }
 
@@ -139,14 +142,22 @@ public class Path extends Global {
         return rc.senseRubble(old);
     }
 
-    // DO NOT CALL THIS WITH NO VISBILE HOSTILES!!!!
     public static boolean runFromEnemies() throws GameActionException{
         MapLocation enemyLoc = getAverageLoc(visibleHostiles);
         Direction oppositeVector = myLoc.directionTo(enemyLoc).opposite();
-        if (tryMoveDirTimes(oppositeVector,6));
+        if (tryMoveDir(oppositeVector))
             return true;
 
+        return tryMoveDirTimes(oppositeVector, 6);
+    }
 
+    public static boolean runToAllies() throws GameActionException {
+        MapLocation allyLoc = getAverageLoc(visibleAllies);
+        Direction allyVector = myLoc.directionTo(allyLoc);
+        if (tryMoveDir(allyVector))
+            return true;
+
+        return tryMoveDir(allyVector);
     }
 
     public static MapLocation getAverageLoc(RobotInfo[] robotArr){
@@ -180,6 +191,14 @@ public class Path extends Global {
                 return true;
             }
         }
+        return false;
+    }
+
+    public static boolean moveRandom() throws GameActionException{
+        if (lastDirMoved == Direction.NONE)
+            lastDirMoved = randomDir();
+        if (!tryMoveDir(lastDirMoved))
+            tryMoveDirTimes(randomDir(), 6);
         return false;
     }
 

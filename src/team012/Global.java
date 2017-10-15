@@ -71,7 +71,7 @@ public class Global {
         signals = rc.emptySignalQueue();
     }
 
-    public static int getDangerLevel() {
+    public static int getDangerFactor() {
         int danger = 0;
         for (RobotInfo robot : visibleZombies) {
             if(robot.type == RobotType.BIGZOMBIE) {
@@ -87,6 +87,10 @@ public class Global {
             }
         }
         return danger;
+    }
+
+    public static double getOutnumberFactor() {
+        return ((double)visibleHostiles.length + 1) / (visibleAllies.length +1);
     }
 
     static Direction currentlyClearing = null;
