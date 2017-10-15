@@ -104,7 +104,7 @@ public class Archon extends Global {
             }
             if(readyMove){
                 // Maybe Send only to a scout with a certain ID
-                Comm.sendMsgMap(SCOUT_NEXT, placedScoutLoc);
+                Comm.sendMap(SCOUT_NEXT, placedScoutLoc);
             }
         }
     }
@@ -130,6 +130,7 @@ public class Archon extends Global {
     }
 
     static void HealAUnitInRange() throws GameActionException{
+        if (rc.isWeaponReady())
         for(RobotInfo robot: rc.senseNearbyRobots(myAttackRange, myTeam)){
             if(robot.health < robot.type.maxHealth){
                 rc.repair(robot.location);
@@ -328,7 +329,7 @@ public class Archon extends Global {
 
                 if (destination == Destination.NONE && !scanForNearNeutral()) {
                     if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
-                        tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER);
+                        tryBuildAnyDir(Path.enemyAvg, RobotType.SOLDIER);
                     else if (healthLost > 5)
                         if (!Path.runFromEnemies())
                             Path.moveSomewhereOrLeft(Path.lastDirMoved);

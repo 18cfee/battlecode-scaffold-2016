@@ -2,14 +2,11 @@ package team012;
 
 import battlecode.common.*;
 
-import java.awt.*;
-import java.util.Map;
-
 public class Path extends Global {
 
     static Direction lastDirMoved = Direction.EAST;
-    static Direction awayEnemyDirection = Direction.EAST;
-    static Direction allyDirection = Direction.EAST;
+    static Direction enemyAvg = Direction.EAST;
+    static Direction allyAvg = Direction.EAST;
 
     public static boolean moveSafeTo(MapLocation loc) throws GameActionException{
         Direction dir = myLoc.directionTo(loc);
@@ -150,20 +147,20 @@ public class Path extends Global {
 
     public static boolean runFromEnemies() throws GameActionException{
         MapLocation enemyLoc = getAverageLoc(visibleHostiles);
-        awayEnemyDirection = myLoc.directionTo(enemyLoc).opposite();
-        if (tryMoveDir(awayEnemyDirection))
+        enemyAvg = myLoc.directionTo(enemyLoc);
+        if (tryMoveDir(enemyAvg.opposite()))
             return true;
 
-        return tryMoveDirTimes(awayEnemyDirection, 6);
+        return tryMoveDirTimes(enemyAvg.opposite(), 6);
     }
 
     public static boolean runToAllies() throws GameActionException {
         MapLocation allyLoc = getAverageLoc(visibleAllies);
-        allyDirection = myLoc.directionTo(allyLoc);
-        if (tryMoveDir(allyDirection))
+        allyAvg = myLoc.directionTo(allyLoc);
+        if (tryMoveDir(allyAvg))
             return true;
 
-        return tryMoveDir(allyDirection);
+        return tryMoveDir(allyAvg);
     }
 
     public static MapLocation getAverageLoc(RobotInfo[] robotArr){
@@ -203,8 +200,15 @@ public class Path extends Global {
     public static boolean moveRandom() throws GameActionException{
         if (lastDirMoved == Direction.NONE)
             lastDirMoved = randomDir();
+
         if (!tryMoveDir(lastDirMoved))
-            tryMoveDirTimes(randomDir(), 6);
+            for (int i = 0; i < 10; i++) {
+                Direction dir = directions[CachedMath.getRand8()];
+                if (rc.canMove(dir)){
+                    rc.move(dir);
+                    return true;
+                }
+            }
         return false;
     }
 
