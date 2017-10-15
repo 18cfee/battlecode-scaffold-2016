@@ -73,17 +73,17 @@ public class Path extends Global {
             case WEST:
                 return new MapLocation(loc.x-1, loc.y);
             case NORTH:
-                return new MapLocation(loc.x, loc.y+1);
-            case SOUTH:
                 return new MapLocation(loc.x, loc.y-1);
+            case SOUTH:
+                return new MapLocation(loc.x, loc.y+1);
             case SOUTH_EAST:
-                return new MapLocation(loc.x+1, loc.y-1);
-            case SOUTH_WEST:
-                return new MapLocation(loc.x-1, loc.y-1);
-            case NORTH_WEST:
-                return new MapLocation(loc.x-1, loc.y+1);
-            case NORTH_EAST:
                 return new MapLocation(loc.x+1, loc.y+1);
+            case SOUTH_WEST:
+                return new MapLocation(loc.x-1, loc.y+1);
+            case NORTH_WEST:
+                return new MapLocation(loc.x-1, loc.y-1);
+            case NORTH_EAST:
+                return new MapLocation(loc.x+1, loc.y-1);
             default: return new MapLocation(loc.x, loc.y);
         }
     }
@@ -111,7 +111,7 @@ public class Path extends Global {
     }
 
     public static double senseRubbleFixBug (Direction sense) throws GameActionException{
-        switch(sense){
+        /*switch(sense){
             case NORTH:
                 sense = Direction.SOUTH;
                 break;
@@ -130,7 +130,7 @@ public class Path extends Global {
             case SOUTH_WEST:
                 sense = Direction.NORTH_WEST;
                 break;
-        }
+        }*/
         MapLocation old = getLocAt(sense, rc.getLocation());
         //MapLocation senseAt = new MapLocation(old.x,old.y - 2*sense.dy);
         return rc.senseRubble(old);
