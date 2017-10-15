@@ -297,7 +297,7 @@ public class Archon extends Global {
                 if(visibleAllies.length > 0) {
                     int b = 3000 - Clock.getBytecodeNum();
                     if (b > 0)
-                        sendEnemyLocations(Math.min((int) Math.floor(b / 100), 10));
+                        sendEnemyLocations(Math.min((int) Math.floor(b / 100), 8));
                 }
                 // END OF TURN
             } catch(Exception e) {

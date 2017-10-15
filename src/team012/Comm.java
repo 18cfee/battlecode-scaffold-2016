@@ -19,7 +19,7 @@ public class Comm extends Global{
     static long longData;
 
     public static void init(){
-        broadcastStrength = mySensorRange*2;
+        broadcastStrength = mySensorRange;
         channel = 0;
         extra = 0;
         loc = myLoc;
