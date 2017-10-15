@@ -1,9 +1,7 @@
 package team012;
 
 import battlecode.common.*;
-import battlecode.world.signal.ClearRubbleSignal;
 
-import javax.xml.stream.Location;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -44,7 +42,6 @@ public class Archon extends Global {
 
 
         }
-        rc.setIndicatorString(2, String.valueOf(archonId));
     }
 
     public static int stage = 0;
@@ -291,9 +288,10 @@ public class Archon extends Global {
 
     public static void loop() {
         while (true) {
-            try {
+                try {
                 // BEGIN TURN
                 update();
+//                processSignals();
                 turn();
                 // END OF TURN
             } catch(Exception e) {
@@ -403,5 +401,49 @@ public class Archon extends Global {
         }
         return neutrals.length > 0;
     }
+
+    public static void processSignals() throws GameActionException{
+        for(Signal s : signals) {
+            if (s.getTeam() != myTeam) continue;
+            if (Comm.readSig(s)) {
+                processMsg(Comm.channel, Comm.loc);
+            }
+        }
+    }
+
+    // set your flags or do something
+    private static void processMsg(int channel, MapLocation loc) {
+
+        switch (channel) {
+            case ENEMY_ARCHON_LOCATION:
+
+
+                break;
+            case EMPTY:
+
+
+                break;
+
+            case FORM_UNIT_ON_ME:
+
+
+                break;
+
+            case SCOUT_NEXT:
+
+
+                break;
+            case TURRET_SHOOT_HERE:
+                rc.setIndicatorString(0, "TURRET_SHOOT_HERE "+mapLocationToString(Comm.loc));
+
+        }
+
+    }
+
+
+
+
+
+
 
 }
