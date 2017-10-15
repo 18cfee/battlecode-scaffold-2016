@@ -30,7 +30,6 @@ public class Guard extends Global {
             }
 
             if(startedPatrol) {
-                System.out.println("Guard going into patrol: moving = " + moving + "; turn number: " + Global.roundNum);
                 patrolTurrets();
             }else{
                 for(RobotInfo ally : visibleAllies){
@@ -54,7 +53,6 @@ public class Guard extends Global {
                         Path.tryMoveDir(Direction.WEST);
                         moving = Direction.WEST;
                         clockwise = false;
-                        System.out.println("First starting patrol: startedPatrol = " + startedPatrol + "; moving = " + moving.toString() + "; clockwise = " + clockwise);
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.SOUTH_EAST && myLoc.distanceSquaredTo(ally.location) < 5) {
                         startedPatrol = true;
