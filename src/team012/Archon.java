@@ -60,8 +60,13 @@ public class Archon extends Global {
         } else if (archonId == 0) {
             double leave = Path.zombieHealthAroundMe(visibleZombies,visibleAllies);
             rc.setIndicatorString(0,"MyTeamRatio: " + String.valueOf(leave));
-            if(leave < 1){
-                rc.disintegrate();
+            if(leave < 1.5){
+                if(leave < .75){
+                    Comm.sendMsgMap(DISINEGRATE, new MapLocation(0,0));
+                    archonId = 99;
+                    roam();
+                }
+                return;
             }
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
