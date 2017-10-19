@@ -2,50 +2,58 @@ package team012;
 
 import battlecode.common.*;
 
+
 public class Turret extends Global {
 
-    public static void init(){};
+    public static void init(){
+        enemies = new HackedRobotInfo[50];
+        enemiesIdx = 0;
+    }
+
+    static HackedRobotInfo enemies[];
+    static int enemiesIdx;
+    static MapLocation target;
 
     public static void turn() throws GameActionException{
+        int bytes = Clock.getBytecodeNum();
+        processSignals();
+        bytes = Clock.getBytecodeNum() - bytes;
+        rc.setIndicatorString(0, "BYTECODES USED FOR SIGNAL PROCESSING:"+String.valueOf(bytes));
+
 
         // If this robot type can attack, check for enemies within range and attack one
         if (rc.isWeaponReady()) {
-            boolean shot = false;
-            RobotInfo[] enemiesWithinRange = rc.senseNearbyRobots(myAttackRange, enemyTeam);
-            RobotInfo[] zombiesWithinRange = rc.senseNearbyRobots(myAttackRange, Team.ZOMBIE);
-            if (enemiesWithinRange.length > 0) {
-                for (RobotInfo enemy : enemiesWithinRange) {
-                    // Check whether the enemy is in a valid attack range (turrets have a minimum range)
-                    if (rc.canAttackLocation(enemy.location)) {
-                        rc.attackLocation(enemy.location);
-                        shot = true;
-                        break;
-                    }
-                }
-            } else if (zombiesWithinRange.length > 0) {
-                for (RobotInfo zombie : zombiesWithinRange) {
-                    if (rc.canAttackLocation(zombie.location)) {
-                        rc.attackLocation(zombie.location);
-                        shot = true;
-                        break;
-
-                    }
-                }
-            }
-            if(!shot){
-                for(Signal sig: signals){
-                    if (Comm.readSig(sig) && Comm.channel == TURRET_SHOOT_HERE) {
-                        rc.setIndicatorLine(myLoc,Comm.loc, 255,0,0);
-                        MapLocation shoot = Comm.loc;
-                        if (rc.canAttackLocation(shoot)) {
-                            rc.attackLocation(shoot);
-                        }
-                        break;
-                    }
-                }
+            // this should return a target location that is attackable
+            boolean haveTarget = selectTarget();
+            if (haveTarget) {
+                rc.attackLocation(target);
             }
         }
+    }
 
+    // stores locations of enemies from signals
+    private static void processSignals() throws GameActionException{
+        enemiesIdx = 0;
+        for (int i = 0; i < Math.min(10, signals.length); i++)
+            if (Comm.readSig(signals[i]))
+                if (Comm.channel == ENEMY_HERE)
+                    enemies[enemiesIdx] = Comm.robot;
+    }
+
+    // selects the best based on highest attack power
+    private static boolean selectTarget() {
+        for (RobotInfo hostile :visibleHostiles)
+            if(rc.canAttackLocation(hostile.location)) {
+                target = hostile.location;
+                return true;
+            }
+
+        for (int i = 0; i < enemiesIdx; i++)
+            if(rc.canAttackLocation(enemies[enemiesIdx].loc)) {
+                target = enemies[enemiesIdx].loc;
+                return true;
+            }
+        return false;
     }
 
     public static void loop() {

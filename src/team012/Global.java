@@ -4,13 +4,14 @@ import battlecode.common.*;
 
 public class Global {
 
-    public static final int ZOMBIEDEN_LOCATION = 0xFF;
-    public static final int ENEMY_ARCHON_LOCATION = 0xAB;
-    public static final int HELP_ARCHON_AT_LOCATION = 0xAA;
-    public static final int SCOUT_NEXT = 0xBB;
-    public static final int TURRET_SHOOT_HERE = 0xAC;
-    public static final int FORM_UNIT_ON_ME = 0xEE;
-    public static final int EMPTY = 0x00;
+    static final int ZOMBIEDEN_LOCATION = 0xFF;
+    static final int ENEMY_ARCHON_LOCATION = 0xAB;
+    static final int HELP_ARCHON_AT_LOCATION = 0xAA;
+    static final int SCOUT_NEXT = 0xBB;
+    static final int TURRET_SHOOT_HERE = 0xAC;
+    static final int FORM_UNIT_ON_ME = 0xEE;
+    static final int ENEMY_HERE = 0xE0;
+    static final int EMPTY = 0x00;
 
     static final RobotController rc = RobotPlayer.rc;
 
@@ -148,5 +149,6 @@ public class Global {
     public static String mapLocationToString(MapLocation loc) {
         return "X: "+loc.x+"Y: "+loc.y;
     }
+
 
 }

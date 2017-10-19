@@ -186,21 +186,17 @@ public class Archon extends Global {
 
     static MapLocation placedScoutLoc = null;
     static int placedScoutId = -1;
-    static int notPlaced = 0;
     private static void placeInitialScout() throws GameActionException{
         if(camp == null){
             setStart();
         }
         if (rc.isCoreReady() && rc.canBuild(camp,RobotType.SCOUT)) {
             // Place in spot facing away from boundary (or rand if farther)
-            //if
             rc.build(camp, RobotType.SCOUT);
             placedScoutLoc = Path.getLocAt(camp,myLoc);
             placedScoutId = rc.senseRobotAtLocation(placedScoutLoc).ID;
             stage++;
             // Move Up a level in the defense Process
-        } else {
-            notPlaced++;
         }
     }
 
