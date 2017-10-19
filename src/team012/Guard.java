@@ -13,7 +13,7 @@ public class Guard extends Global {
     private static boolean clockwise = true;
     private static boolean startedPatrol = false;
     private static boolean interruptPatrol = false;
-    private static int maxDist = 10;
+    private static int maxDist = 0;
     private static MapLocation patrolLoc = myLoc;
     private static boolean didPatrol = false;
     private static int intMoving = 0;
@@ -107,7 +107,7 @@ public class Guard extends Global {
                 intMoving = (intMoving +2) % 8;
                 moving = Global.directions[intMoving];
             }
-            System.out.println("Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
+            rc.setIndicatorString(0,"Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
             if(rc.canMove(moving)){
                 oldLoc = myLoc;
                 patrolLoc = myLoc;
@@ -137,7 +137,7 @@ public class Guard extends Global {
                 intMoving = (intMoving + 6) % 8;
                 moving = Global.directions[intMoving];
             }
-            System.out.println("Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
+            rc.setIndicatorString(0,"Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
             if(rc.canMove(moving)){
                 oldLoc = myLoc;
                 patrolLoc = myLoc;
