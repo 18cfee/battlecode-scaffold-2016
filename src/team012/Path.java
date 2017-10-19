@@ -208,4 +208,17 @@ public class Path extends Global {
         return false;
     }
 
+    //////////////////////////////This Stuff For after the Rollback
+    public static double zombieHealthAroundMe(RobotInfo[] zombies, RobotInfo[] myTeam){
+        double ourTot = 0;
+        double theirTot = 0;
+        for (RobotInfo zombie: zombies) {
+            theirTot += zombie.health;
+        }
+        for (RobotInfo goodGuy: myTeam) {
+            ourTot += goodGuy.health;
+        }
+        return ourTot/theirTot;
+    }
+    /////////////////////////////////////////////////////////////
 }
