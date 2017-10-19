@@ -104,7 +104,7 @@ public class Archon extends Global {
             }
             if(readyMove){
                 // Maybe Send only to a scout with a certain ID
-                Comm.sendMsgMap(SCOUT_NEXT, placedScoutLoc);
+                //Comm.sendMsgMap(SCOUT_NEXT, placedScoutLoc); ////FixLater////////////
             }
         }
     }
@@ -327,9 +327,9 @@ public class Archon extends Global {
                 }
 
                 if (destination == Destination.NONE && !scanForNearNeutral()) {
-                    if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
+                    /*if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
                         tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER);
-                    else if (healthLost > 5)
+                    else if (healthLost > 5)*/ ///////FixLater//////
                         if (!Path.runFromEnemies())
                             Path.moveSomewhereOrLeft(Path.lastDirMoved);
                 } else {
