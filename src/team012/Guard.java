@@ -13,7 +13,7 @@ public class Guard extends Global {
     private static boolean clockwise = true;
     private static boolean startedPatrol = false;
     private static boolean interruptPatrol = false;
-    private static int maxDist = 10;
+    private static int maxDist = 0;
     private static MapLocation patrolLoc = myLoc;
     private static boolean didPatrol = false;
     private static int intMoving = 0;
@@ -33,9 +33,19 @@ public class Guard extends Global {
                 }
             }
 
+
+            RobotInfo target = null;
+            boolean hasTarget = false;
             if(visibleHostiles.length > 0){
                 interruptPatrol = true;
-                if(myLoc.distanceSquaredTo(patrolLoc) <= maxDist){
+                for(RobotInfo hostile: visibleHostiles) {
+                    if(myLoc.distanceSquaredTo(hostile.location) < myAttackRange){
+                        hasTarget = true;
+                        target = hostile;
+                        break;
+                    }
+                }
+                if(myLoc.distanceSquaredTo(patrolLoc) <= maxDist && !hasTarget){
                     Path.tryMoveDir(myLoc.directionTo(Path.getAverageLoc(visibleHostiles)));
                 }
             }else{
@@ -48,7 +58,10 @@ public class Guard extends Global {
                 }
             }
 
-            if(startedPatrol && !interruptPatrol) {
+            if(hasTarget){
+                rc.setIndicatorString(0, "attacking " + target.location.toString() + "; " + rc.canAttackLocation(target.location));
+                rc.attackLocation(target.location);
+            }else if(startedPatrol && !interruptPatrol) {
                 patrolTurrets();
             }else if(!startedPatrol){
                 for(RobotInfo ally : visibleAllies){
@@ -107,7 +120,7 @@ public class Guard extends Global {
                 intMoving = (intMoving +2) % 8;
                 moving = Global.directions[intMoving];
             }
-            System.out.println("Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
+            rc.setIndicatorString(0,"Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
             if(rc.canMove(moving)){
                 oldLoc = myLoc;
                 patrolLoc = myLoc;
@@ -137,7 +150,7 @@ public class Guard extends Global {
                 intMoving = (intMoving + 6) % 8;
                 moving = Global.directions[intMoving];
             }
-            System.out.println("Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
+            rc.setIndicatorString(0,"Guard: continue path = " + cont + "; Direction moving = " + moving.toString());
             if(rc.canMove(moving)){
                 oldLoc = myLoc;
                 patrolLoc = myLoc;
@@ -159,7 +172,7 @@ public class Guard extends Global {
         }
     }
 
-    private static int getIndex(Direction d) {
+    private static int getIndex(Direction d) throws GameActionException{
 
         switch(d){
             case NORTH:
