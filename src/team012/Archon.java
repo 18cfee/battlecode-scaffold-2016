@@ -2,6 +2,7 @@ package team012;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -13,6 +14,7 @@ public class Archon extends Global {
     static Destination destination;
     static MapLocation destLoc;
     static MapLocation lastLoc;
+    static final boolean disinegrateMode = false;
 
 
     static int archonId;
@@ -55,12 +57,13 @@ public class Archon extends Global {
     public static void turn() throws GameActionException{
         HealAUnitInRange();
         if (archonId > 0) {
+            rc.setIndicatorString(1,"I am trying to roam: ");
             roam();
             return;
         } else if (archonId == 0) {
             double leave = Path.zombieHealthAroundMe(visibleZombies,visibleAllies);
             rc.setIndicatorString(0,"MyTeamRatio: " + String.valueOf(leave));
-            if(leave < 1.5){
+            if(leave < 1.5 && disinegrateMode){
                 if(leave < .75){
                     Comm.sendMsgMap(DISINEGRATE, new MapLocation(0,0));
                     archonId = 99;
@@ -83,13 +86,16 @@ public class Archon extends Global {
         }
     }
 
+    static int archonMoved = 0;
     static void moveToScout() throws GameActionException{
         Direction moveTo = myLoc.directionTo(placedScoutLoc);
         if(rc.isCoreReady() && rc.canMove(moveTo)){
             rc.move(moveTo);
+            current = moveTo.opposite();
             for(RobotInfo ally: visibleAllies){
                 if(ally.ID == placedScoutId){
                     placedScoutLoc = ally.location;
+                    archonMoved++;
                     break;
                 }
             }
@@ -183,9 +189,14 @@ public class Archon extends Global {
     private static void normSquareTurrets() throws GameActionException{
         if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
             for (int i = 0; i < 8; i++) {
+                if(archonMoved%3 == 1){
+                    typeToBuild = RobotType.SCOUT;
+                    archonMoved++;
+                }
                 if (rc.canBuild(current, typeToBuild)) {
                     rc.build(current, typeToBuild);
                     current = current.rotateLeft();
+                    typeToBuild = RobotType.TURRET;
                     break;
                 } else {
                     current = current.rotateLeft();
