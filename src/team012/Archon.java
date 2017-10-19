@@ -58,7 +58,11 @@ public class Archon extends Global {
             roam();
             return;
         } else if (archonId == 0) {
-            rc.setIndicatorString(0,"carl: " + String.valueOf(Path.zombieHealthAroundMe(visibleZombies,visibleAllies)));
+            double leave = Path.zombieHealthAroundMe(visibleZombies,visibleAllies);
+            rc.setIndicatorString(0,"MyTeamRatio: " + String.valueOf(leave));
+            if(leave < 1){
+                rc.disintegrate();
+            }
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
                 moveToScout();
