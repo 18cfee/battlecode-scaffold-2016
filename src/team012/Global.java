@@ -8,6 +8,7 @@ public class Global {
     public static final int ENEMY_ARCHON_LOCATION = 0xAB;
     public static final int HELP_ARCHON_AT_LOCATION = 0xAA;
     public static final int SCOUT_NEXT = 0xBB;
+    public static final int DISINEGRATE = 0xCC;
     public static final int TURRET_SHOOT_HERE = 0xAC;
     public static final int FORM_UNIT_ON_ME = 0xEE;
     public static final int EMPTY = 0x00;

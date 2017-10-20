@@ -8,6 +8,13 @@ public class Turret extends Global {
 
     public static void turn() throws GameActionException{
 
+
+        // Disingrate Stuff below here
+        for(Signal sig: signals) {
+            if (Comm.readSig(sig) && Comm.channel == DISINEGRATE) {
+                rc.disintegrate();
+            }
+        }
         // If this robot type can attack, check for enemies within range and attack one
         if (rc.isWeaponReady()) {
             boolean shot = false;
@@ -34,13 +41,14 @@ public class Turret extends Global {
             }
             if(!shot){
                 for(Signal sig: signals){
+                    // Shooting from here
                     if (Comm.readSig(sig) && Comm.channel == TURRET_SHOOT_HERE) {
                         rc.setIndicatorLine(myLoc,Comm.loc, 255,0,0);
                         MapLocation shoot = Comm.loc;
                         if (rc.canAttackLocation(shoot)) {
                             rc.attackLocation(shoot);
+                            break;
                         }
-                        break;
                     }
                 }
             }

@@ -52,9 +52,11 @@ public class Scout extends Global {
         }
     }
 
+    static Direction lastMoved = Direction.NORTH;
     private static void move() throws GameActionException{
-        Path.moveSomewhereOrLeft(Direction.NORTH);
+        lastMoved = Path.moveSomewhereOrLeft(lastMoved).rotateLeft();
         iNeedToMove = false;
+        rc.setIndicatorString(0,"Set iNeedToMove to false");
     }
 
     private static boolean iNeedToMove = false;
@@ -64,6 +66,7 @@ public class Scout extends Global {
                 if (Comm.channel == SCOUT_NEXT) {
                     if (Comm.loc.equals(myLoc) ) {
                         iNeedToMove = true;
+                        rc.setIndicatorString(0,"Set iNeedToMove to true");
                         break;
                     }
                 }

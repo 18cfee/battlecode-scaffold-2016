@@ -2,6 +2,7 @@ package team012;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -13,6 +14,7 @@ public class Archon extends Global {
     static Destination destination;
     static MapLocation destLoc;
     static MapLocation lastLoc;
+    static final boolean disinegrateMode = false;
 
 
     static int archonId;
@@ -55,20 +57,26 @@ public class Archon extends Global {
     public static void turn() throws GameActionException{
         HealAUnitInRange();
         if (archonId > 0) {
+            rc.setIndicatorString(1,"I am trying to roam: ");
             roam();
             return;
         } else if (archonId == 0) {
             double leave = Path.zombieHealthAroundMe(visibleZombies,visibleAllies);
             rc.setIndicatorString(0,"MyTeamRatio: " + String.valueOf(leave));
-            if(leave < 1){
-                rc.disintegrate();
+            if(leave < 1.5 && disinegrateMode){
+                if(leave < .75){
+                    Comm.sendMsgMap(DISINEGRATE, new MapLocation(0,0));
+                    archonId = 99;
+                    roam();
+                }
+                return;
             }
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
-                moveToScout();
+                boolean moved = moveToScout();
                 normSquareTurrets();
                 clearRubble();
-                readyMove();
+                readyMove(moved);
             }  else if(stage == 2) {
                 if(!checkedNeutUnitsHere) tryConvertNeutralConvenience();
                 placeInitialScout();
@@ -78,21 +86,26 @@ public class Archon extends Global {
         }
     }
 
-    static void moveToScout() throws GameActionException{
+    static int archonMoved = 0;
+    static boolean moveToScout() throws GameActionException{
         Direction moveTo = myLoc.directionTo(placedScoutLoc);
         if(rc.isCoreReady() && rc.canMove(moveTo)){
             rc.move(moveTo);
+            current = moveTo.opposite();
             for(RobotInfo ally: visibleAllies){
                 if(ally.ID == placedScoutId){
                     placedScoutLoc = ally.location;
+                    archonMoved++;
                     break;
                 }
             }
+            return true;
         }
+        return false;
     }
 
-    static void readyMove() throws GameActionException{
-        if(roundNum%10 == 0){
+    static void readyMove(boolean moved) throws GameActionException{
+        if(roundNum%10 == 0 && !moved){
             Direction check = Direction.NORTH;
             boolean readyMove = true;
             for(int i = 0; i < 8; i++){
@@ -130,7 +143,19 @@ public class Archon extends Global {
         if(dx != 0 || dy != 0){
             camp = Path.convertXY(dx,dy).opposite();
         } else{
-            camp = Direction.NORTH;
+            // Place in the spot with the most rubble
+            Direction that = Direction.SOUTH_EAST; // changed to North-East for factory map
+            Direction low = null;
+            double min = 100000;
+            for (int i = 0; i < 8; i++) {
+                double rubAtSpot = Path.senseRubbleFixBug(that);
+                if (rc.canBuild(that, RobotType.SCOUT) && min > rubAtSpot && rubAtSpot > 49) {
+                    min = rubAtSpot;
+                    low = that;
+                }
+                that = that.rotateLeft();
+            }
+            camp = low;
         }
     }
 
@@ -178,9 +203,15 @@ public class Archon extends Global {
     private static void normSquareTurrets() throws GameActionException{
         if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
             for (int i = 0; i < 8; i++) {
+                if(archonMoved%3 == 1){
+                    typeToBuild = RobotType.SCOUT;
+                    archonMoved++;
+                }
+
                 if (rc.canBuild(current, typeToBuild)) {
                     rc.build(current, typeToBuild);
                     current = current.rotateLeft();
+                    typeToBuild = RobotType.TURRET;
                     break;
                 } else {
                     current = current.rotateLeft();
