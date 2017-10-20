@@ -388,35 +388,7 @@ public class Archon extends Global {
             if (destination == Destination.HOME && myLoc.distanceSquaredTo(destLoc) < 20) {
                 destination = Destination.CAMP;
             }
-
-            if (destination == Destination.CAMP) {
-                RobotInfo campArchon = getArchonFromVisible(campArchonId);
-                if (campArchon == null)
-                    destination = Destination.NONE;
-                else
-                    destLoc = campArchon.location;
-
-                if (getOutnumberFactor() > 2f)
-                    destination = Destination.NONE;
-
-                if (myLoc.distanceSquaredTo(destLoc) > 30) {
-                    if (healthLost > 3)
-                        Path.runFromEnemies();
-                    else
-                        Path.moveSafeTo(destLoc);
-
-                    if (rc.isCoreReady()){
-                        Path.moveTo(destLoc);
-                    }
-                } else {
-                    if (healthLost > 0)
-                        Path.runFromEnemies();
-                    else {
-                        Path.moveTo(destLoc);
-                    }
-                }
-            }
-
+            
             if (rc.isCoreReady()) {
                 if (zombieAdj > -1) {
                     Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
