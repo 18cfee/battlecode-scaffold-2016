@@ -54,10 +54,12 @@ public class Archon extends Global {
     //      3   ||  Place First Turret Cluster
     public static void turn() throws GameActionException{
         HealAUnitInRange();
-        if (archonId > 0) {
+        if (archonId != 0) {
             roam();
-            return;
-        } else if (archonId == 0) {
+        } else {
+            if (visibleZombies.length > 3 * visibleAllies.length || healthLost > 25) {
+                Path.runFromEnemies();
+            }
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
                 moveToScout();
@@ -129,15 +131,16 @@ public class Archon extends Global {
         }
     }
 
-    static void HealAUnitInRange() throws GameActionException{
+    static boolean HealAUnitInRange() throws GameActionException{
         for(RobotInfo robot: rc.senseNearbyRobots(myAttackRange, myTeam)){
             if(robot.type != RobotType.ARCHON) {
                 if (robot.health < robot.type.maxHealth) {
                     rc.repair(robot.location);
-                    break;
+                    return true;
                 }
             }
         }
+        return false;
     }
 
     private static boolean checkedNeutUnitsHere = false;
@@ -347,29 +350,23 @@ public class Archon extends Global {
                     scanForNearNeutral();
                 }
 
-
                 if (rc.isCoreReady()){
                     if (zombieAdj > -1) {
                         Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
                     } else if (destination != Destination.STUCK || destination != Destination.NONE){
-                        if (healthLost > 10)
+                        if (healthLost > 5)
                             Path.runFromEnemies();
                         else if(!Path.moveTo(destLoc)) {
                             destination = Destination.STUCK;
                             cooldown = 0;
                             Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
                         }
+                    } else if (healthLost > 0){
+                            Path.runFromEnemies();
                     } else if (roundNum % 600 == 0) {
                         destination = Destination.HOME;
-                        destLoc = ourArchonSpawns[archonId];
+                        destLoc = spawnLoc;
                         Path.moveTo(destLoc);
-                    } else if (healthLost > 0){
-                        if (roundNum % 3 <  1)
-                            Path.runFromEnemies();
-                        else {
-                            if (visibleHostiles.length > 0)
-                                Path.tryMoveDir(visibleHostiles[0].location.directionTo(myLoc));
-                        }
                     }
                 }
 
@@ -393,7 +390,11 @@ public class Archon extends Global {
             rc.setIndicatorString(2 , destination.toString());
         }
 
-        if (rc.isCoreReady())
+        boolean didHeal = false;
+        if (rc.isWeaponReady() && visibleAllies.length > 0)
+            didHeal = HealAUnitInRange();
+
+        if (!didHeal && rc.isCoreReady())
             if (!Path.moveRandom())
                 Path.moveSomewhereOrLeft(Path.lastDirMoved);
 
