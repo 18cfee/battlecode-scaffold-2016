@@ -33,7 +33,6 @@ public class Guard extends Global {
             }
 
 
-            rc.setIndicatorDot(ourArchonSpawns[0], 250, 0, 250);
             rc.setIndicatorString(1, "Patrol Loc: " + patrolLoc.toString());
             RobotInfo target = null;
             boolean hasTarget = false;
@@ -68,80 +67,95 @@ public class Guard extends Global {
             }else if(!startedPatrol){
                 for(RobotInfo ally : visibleAllies){
                     if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.EAST && myLoc.distanceSquaredTo(ally.location) < 5){
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.NORTH);
-                        moving = Direction.NORTH;
-                        intMoving = 0;
-                        clockwise = true;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.NORTH)){
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.NORTH);
+                            moving = Direction.NORTH;
+                            intMoving = 0;
+                            clockwise = true;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.WEST && myLoc.distanceSquaredTo(ally.location) < 5) {
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.SOUTH);
-                        moving = Direction.SOUTH;
-                        intMoving = 4;
-                        clockwise = true;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.SOUTH)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.SOUTH);
+                            moving = Direction.SOUTH;
+                            intMoving = 4;
+                            clockwise = true;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.NORTH && myLoc.distanceSquaredTo(ally.location) < 5) {
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.WEST);
-                        moving = Direction.WEST;
-                        intMoving = 6;
-                        clockwise = true;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.WEST)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.WEST);
+                            moving = Direction.WEST;
+                            intMoving = 6;
+                            clockwise = true;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.SOUTH && myLoc.distanceSquaredTo(ally.location) < 5) {
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.EAST);
-                        moving = Direction.EAST;
-                        intMoving = 2;
-                        clockwise = true;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.EAST)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.EAST);
+                            moving = Direction.EAST;
+                            intMoving = 2;
+                            clockwise = true;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.NORTH_WEST && myLoc.distanceSquaredTo(ally.location) < 5) {
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.WEST);
-                        moving = Direction.WEST;
-                        intMoving = 6;
-                        clockwise = true;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.WEST)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.WEST);
+                            moving = Direction.WEST;
+                            intMoving = 6;
+                            clockwise = true;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.NORTH_EAST && myLoc.distanceSquaredTo(ally.location) < 5) {
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.EAST);
-                        moving = Direction.EAST;
-                        intMoving = 2;
-                        clockwise = false;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.EAST)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.EAST);
+                            moving = Direction.EAST;
+                            intMoving = 2;
+                            clockwise = false;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.SOUTH_WEST && myLoc.distanceSquaredTo(ally.location) < 5){
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.WEST);
-                        moving = Direction.WEST;
-                        intMoving = 6;
-                        clockwise = false;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.WEST)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.WEST);
+                            moving = Direction.WEST;
+                            intMoving = 6;
+                            clockwise = false;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }else if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Direction.SOUTH_EAST && myLoc.distanceSquaredTo(ally.location) < 5) {
-                        startedPatrol = true;
-                        oldLoc = myLoc;
-                        Path.tryMoveDir(Direction.EAST);
-                        moving = Direction.EAST;
-                        intMoving = 2;
-                        clockwise = true;
-                        rc.setIndicatorDot(ally.location, 250, 250, 250);
+                        if(rc.canMove(Direction.EAST)) {
+                            startedPatrol = true;
+                            oldLoc = myLoc;
+                            Path.tryMoveDir(Direction.EAST);
+                            moving = Direction.EAST;
+                            intMoving = 2;
+                            clockwise = true;
+                            rc.setIndicatorString(2, "Found turret at " + myLoc.directionTo(ally.location).toString() + "; moving " + moving.toString() + "; clockwise = " + clockwise);
+                        }
                         break;
                     }
                 }
-                rc.setIndicatorString(0,"Guard: continue path = " + moving.toString() + "; Clockwise: " + clockwise);
             }
         }
     }
@@ -151,11 +165,18 @@ public class Guard extends Global {
         boolean cont = false;
         Direction inMoving = moving;
         int inIntMoving = intMoving;
+        boolean turretInPath = false;
 
+        rc.setIndicatorString(2, "");
         if(clockwise){
             for(RobotInfo ally : visibleAllies){
                 if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Global.directions[(intMoving + 2)%8] && ally.location.distanceSquaredTo(myLoc) < 4){
                     cont = true;
+                    break;
+                }
+                if(ally.type == RobotType.TURRET && myLoc.directionTo(ally.location) == Global.directions[intMoving] && ally.location.distanceSquaredTo(myLoc) < 4){
+                    cont = true;
+                    turretInPath = true;
                     break;
                 }
             }
@@ -163,23 +184,46 @@ public class Guard extends Global {
                 intMoving = (intMoving +2) % 8;
                 moving = Global.directions[intMoving];
             }
-            rc.setIndicatorString(0,"Guard: continue path = " + cont + "; Direction moving = " + moving.toString() + "; Clockwise: " + clockwise);
-            if(rc.canMove(moving)){
-                oldLoc = myLoc;
-                patrolLoc = myLoc;
-                Path.tryMoveDir(moving);
+            if(!turretInPath) {
+                rc.setIndicatorString(0, "Guard: continue path = " + cont + "; Direction moving = " + moving.toString() + "; Clockwise: " + clockwise);
+                if (rc.canMove(moving)) {
+                    oldLoc = myLoc;
+                    patrolLoc = myLoc;
+                    Path.tryMoveDir(moving);
+                } else {
+                    clockwise = !clockwise;
+                    moving = myLoc.directionTo(oldLoc);
+                    intMoving = getIndex(moving);
+                    if (rc.canMove(moving)) {
+                        oldLoc = myLoc;
+                        patrolLoc = myLoc;
+                        Path.tryMoveDir(moving);
+                    } else {
+                        clockwise = !clockwise;
+                        moving = inMoving;
+                        intMoving = inIntMoving;
+                    }
+                }
             }else{
-                clockwise = !clockwise;
-                moving = myLoc.directionTo(oldLoc);
-                intMoving = getIndex(moving);
+                intMoving = (intMoving - 2) % 8;
+                moving = Global.directions[intMoving];
                 if(rc.canMove(moving)){
                     oldLoc = myLoc;
                     patrolLoc = myLoc;
                     Path.tryMoveDir(moving);
-                }else{
+                }else {
                     clockwise = !clockwise;
-                    moving = inMoving;
-                    intMoving = inIntMoving;
+                    moving = myLoc.directionTo(oldLoc);
+                    intMoving = getIndex(moving);
+                    if (rc.canMove(moving)) {
+                        oldLoc = myLoc;
+                        patrolLoc = myLoc;
+                        Path.tryMoveDir(moving);
+                    } else {
+                        clockwise = !clockwise;
+                        moving = inMoving;
+                        intMoving = inIntMoving;
+                    }
                 }
             }
         }else{
