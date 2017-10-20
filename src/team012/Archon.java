@@ -49,7 +49,7 @@ public class Archon extends Global {
             roam();
         } else {
             HealAUnitInRange();
-            if (getOutnumberFactor() > 2.5f && stage == 3) {
+            if (healthLost > 10 && myHp < 200|| getOutnumberFactor() > 2.5f && stage == 3) {
                 runaway();
                 archonId = -1;
                 return;
