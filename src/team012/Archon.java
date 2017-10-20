@@ -112,7 +112,7 @@ public class Archon extends Global {
                 MapLocation locToCheck = Path.getLocAt(check,myLoc);
                 if(rc.onTheMap(locToCheck) && (500 > (Path.senseRubbleFixBug(check)))){
                     RobotInfo atSpot = rc.senseRobotAtLocation(locToCheck);
-                    if(null == atSpot || atSpot.team.equals(Team.ZOMBIE) || atSpot.team.equals(enemyTeam))
+                    if(null == atSpot || atSpot.team.equals(Team.ZOMBIE) || atSpot.team.equals(enemyTeam) || atSpot.type == RobotType.GUARD)
                     {
                         readyMove = false;
                         break;
@@ -200,6 +200,7 @@ public class Archon extends Global {
 
     static Direction current;
     static RobotType typeToBuild = RobotType.TURRET;
+    static int numBuilt = 0;
     private static void normSquareTurrets() throws GameActionException{
         if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
             for (int i = 0; i < 8; i++) {
@@ -207,11 +208,14 @@ public class Archon extends Global {
                     typeToBuild = RobotType.SCOUT;
                     archonMoved++;
                 }
-
+                if(typeToBuild != RobotType.SCOUT && numBuilt%10 == 9){
+                    typeToBuild = RobotType.GUARD;
+                }
                 if (rc.canBuild(current, typeToBuild)) {
                     rc.build(current, typeToBuild);
                     current = current.rotateLeft();
                     typeToBuild = RobotType.TURRET;
+                    numBuilt++;
                     break;
                 } else {
                     current = current.rotateLeft();

@@ -4,6 +4,11 @@ import battlecode.common.*;
 
 public class Scout extends Global {
 
+    public static void init() {
+        MapLocation startLoc = ourArchonSpawns[0];
+        lastMoved = startLoc.directionTo(myLoc);
+    }
+
     public static void turn() throws GameActionException{
         int minSD = 100;
         int xShoot = -100;
@@ -52,9 +57,9 @@ public class Scout extends Global {
         }
     }
 
-    static Direction lastMoved = Direction.NORTH;
+    static Direction lastMoved;
     private static void move() throws GameActionException{
-        lastMoved = Path.moveSomewhereOrLeft(lastMoved).rotateLeft();
+        lastMoved = Path.moveSomewhereOrLeft(lastMoved);
         iNeedToMove = false;
         rc.setIndicatorString(0,"Set iNeedToMove to false");
     }
@@ -87,7 +92,6 @@ public class Scout extends Global {
             Clock.yield();
         }
     }
-
 }
 
 
