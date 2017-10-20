@@ -15,13 +15,13 @@ public class Comm extends Global{
         loc = myLoc;
     }
 
-    public static void sendMsgMap(int channelIn, MapLocation loc) throws GameActionException{
+    public static void sendMap(int channelIn, MapLocation loc) throws GameActionException{
         int x = loc.x;
         x  = x << 16;
         rc.broadcastMessageSignal( channelIn, x | loc.y, broadcastStrength);
     }
 
-    public static void sendMsgXY(int channelIn, int x, int y) throws GameActionException{
+    public static void sendXY(int channelIn, int x, int y) throws GameActionException{
         x  = x << 16;
         rc.broadcastMessageSignal(channelIn, x | y, broadcastStrength);
     }

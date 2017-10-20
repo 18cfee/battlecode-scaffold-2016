@@ -32,11 +32,16 @@ public class Path extends Global {
     }
 
     public static boolean moveTo(MapLocation loc) throws GameActionException{
+        if(!rc.isCoreReady()) return true;
+
         if (rc.getLocation() == loc) return false;
         return tryMoveDir(rc.getLocation().directionTo(loc));
     }
 
     public static boolean tryMoveDir(Direction dir) throws GameActionException{
+        if(!rc.isCoreReady())
+            return true;
+
         if (rc.canMove(dir)) {
             rc.move(dir);
             lastDirMoved = dir;

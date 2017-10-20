@@ -2,7 +2,6 @@ package team012;
 
 import battlecode.common.*;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -14,7 +13,6 @@ public class Archon extends Global {
     static Destination destination;
     static MapLocation destLoc;
     static MapLocation lastLoc;
-    static final boolean disinegrateMode = false;
 
 
     static int archonId;
@@ -31,14 +29,6 @@ public class Archon extends Global {
             // BASE ARCHON INIT HERE
 
             current = Direction.NORTH;
-
-            buildList = new ArrayList<>();
-            buildList.add(RobotType.SCOUT);
-            buildList.add(RobotType.TURRET);
-            buildList.add(RobotType.SOLDIER);
-            buildList.add(RobotType.SOLDIER);
-            buildList.add(RobotType.SOLDIER);
-            buildList.add(RobotType.SOLDIER);
         } else {
             // ROAMING ARCHON INIT HERE
             destLoc = rc.getLocation();
@@ -55,22 +45,17 @@ public class Archon extends Global {
     //      2   ||  Place Scout
     //      3   ||  Place First Turret Cluster
     public static void turn() throws GameActionException{
-        HealAUnitInRange();
-        if (archonId > 0) {
-            rc.setIndicatorString(1,"I am trying to roam: ");
+        if (archonId != 0) {
+            rc.setIndicatorString(2,"I am trying to roam: ");
             roam();
-            return;
-        } else if (archonId == 0) {
-            double leave = Path.zombieHealthAroundMe(visibleZombies,visibleAllies);
-            rc.setIndicatorString(0,"MyTeamRatio: " + String.valueOf(leave));
-            if(leave < 1.5 && disinegrateMode){
-                if(leave < .75){
-                    Comm.sendMsgMap(DISINEGRATE, new MapLocation(0,0));
-                    archonId = 99;
-                    roam();
-                }
+        } else {
+            HealAUnitInRange();
+            if (getOutnumberFactor() > 2.5f && stage == 3) {
+                runaway();
+                archonId = -1;
                 return;
             }
+
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
                 boolean moved = moveToScout();
@@ -122,7 +107,7 @@ public class Archon extends Global {
             }
             if(readyMove){
                 // Maybe Send only to a scout with a certain ID
-                Comm.sendMsgMap(SCOUT_NEXT, placedScoutLoc);
+                Comm.sendMap(SCOUT_NEXT, placedScoutLoc);
             }
         }
     }
@@ -159,13 +144,14 @@ public class Archon extends Global {
         }
     }
 
-    static void HealAUnitInRange() throws GameActionException{
+    static boolean HealAUnitInRange() throws GameActionException{
         for(RobotInfo robot: rc.senseNearbyRobots(myAttackRange, myTeam)){
             if(robot.health < robot.type.maxHealth){
                 rc.repair(robot.location);
-                break;
+                return true;
             }
         }
+        return false;
     }
 
     private static boolean checkedNeutUnitsHere = false;
@@ -227,6 +213,10 @@ public class Archon extends Global {
         if(camp == null){
             setStart();
         }
+
+        if(camp == null)
+            camp = myLoc.directionTo(theirArchonSpawns[0]);
+
         if (rc.isCoreReady() && rc.canBuild(camp,RobotType.SCOUT)) {
             // Place in spot facing away from boundary (or rand if farther)
             //if
@@ -353,55 +343,94 @@ public class Archon extends Global {
 
     ///////////////////////////////////// Keegan Below This point ////////////////////////////////////
     private static int cooldown;
-
+    private static Direction runDir = null;
+    private static boolean abandoningBase = false;
     private static void roam() throws GameActionException {
+        int zombieAdj = isZombieAdj();
+
+        if(abandoningBase && rc.isCoreReady()) {
+            if (rc.senseRubble(myLoc.add(runDir)) > 49)
+                clearRubble(runDir);
+            else if (rc.canMove(runDir)) {
+                rc.move(runDir);
+                abandoningBase = false;
+                destination = Destination.NONE;
+            }
+        }
+
+        RobotInfo[] adjNeutral = rc.senseNearbyRobots(1, Team.NEUTRAL);
+        if (adjNeutral.length > 0)
+            tryConvertNeutral();
 
         rc.setIndicatorLine(destLoc, rc.getLocation(), 255, 0, 0);
         if (rc.isCoreReady()) {
-                if (destination == Destination.STUCK) {
-                    if (cooldown++ < 13)
-                        if (!Path.runFromEnemies())
+            if (destination == Destination.STUCK) {
+                if (cooldown++ < 13)
+                    if (zombieAdj > -1)
+                        Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                    else {
+                        if (cooldown < 5)
+                            Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
+                        else
                             Path.moveSomewhereOrLeft(Path.lastDirMoved);
-                    else
-                        destination = Destination.NONE;
-                }
+                    }
+                else
+                    destination = Destination.NONE;
 
-                if (destination == Destination.NONE && !scanForNearNeutral()) {
-                    if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
-                        tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER);
-                    else if (healthLost > 5)
-                        if (!Path.runFromEnemies())
-                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
-                } else {
-                    if (getOutnumberFactor() > 2)
-                        if (!Path.runFromEnemies())
-                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
+            }
 
-                    if (!tryConvertNeutral())
-                        if (!Path.moveSafeTo(destLoc)) {
-                            Path.moveTo(destLoc);
-                            if (lastLoc == rc.getLocation()) {
-                                if (myLoc.distanceSquaredTo(destLoc) < 4 &&
-                                        rc.senseRubble(Path.getLocAt(myLoc.directionTo(destLoc),myLoc)) < 100)
-                                    clearRubble(myLoc.directionTo(destLoc));
-                            } else {
-                                destination = Destination.STUCK;
-                                Path.lastDirMoved = rc.getLocation().directionTo(destLoc).opposite();
-                                cooldown = 0;
-                            }
+            if (destination == Destination.NONE ) {
+                scanForNearNeutral();
+            }
 
+            if (rc.isCoreReady()) {
+                if (zombieAdj > -1) {
+                    Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                } else if (destination != Destination.STUCK || destination != Destination.NONE) {
+                    if (healthLost > 5)
+                        Path.runFromEnemies();
+                    else if ((!Path.moveSafeTo(destLoc))&& (!Path.moveTo(destLoc))) {
+                        destination = Destination.STUCK;
+                        cooldown = 0;
+                        Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
+                    }
+                } else if (healthLost > 0)
+                    Path.runFromEnemies();
+            }
+
+            if (rc.isCoreReady()) {
+                if (zombieAdj > -1 && !Path.moveRandom()) {
+                    if (rc.isCoreReady()) {
+                        MapLocation desire = myLoc.add(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                        if (rc.onTheMap(desire)) {
+                            Direction awayDir = myLoc.directionTo(desire);
+                            if (rc.canMove(awayDir) && rc.isCoreReady())
+                                rc.move(awayDir);
+                            else
+                                clearRubble(awayDir);
                         }
-
+                    }
+                } else {
+                    if (roundNum % 3 < 2)
+                        Path.moveRandom();
                 }
+            }
+            rc.setIndicatorString(2, destination.toString());
+
+
+            boolean didHeal = false;
+            if (rc.isWeaponReady() && visibleAllies.length > 0)
+                didHeal = HealAUnitInRange();
+
+            if (!didHeal && rc.isCoreReady())
+                if (!Path.moveRandom())
+                    Path.moveSomewhereOrLeft(Path.lastDirMoved);
+
+            lastLoc = rc.getLocation();
 
         }
-        if (rc.isCoreReady())
-            if (!Path.moveRandom())
-                Path.moveSomewhereOrLeft(Path.lastDirMoved);
-
-        lastLoc = rc.getLocation();
-
     }
+
 
     public boolean buildFromList(Direction dir) throws GameActionException {
         if (buildList.isEmpty()) {
@@ -501,6 +530,56 @@ public class Archon extends Global {
                 return true;
         }
         return false;
+    }
+
+    private static void runaway() throws GameActionException {
+        abandoningBase = true;
+
+        RobotInfo[] zombieAdj = rc.senseNearbyRobots(1, Team.ZOMBIE);
+
+        Direction away = myLoc.directionTo(Path.getAverageLoc(zombieAdj)).opposite();
+        MapLocation awayLoc = myLoc.add(away);
+
+        if (rc.isCoreReady())
+            if (Path.tryMoveDir(away))
+                return;
+
+        if (rc.onTheMap(awayLoc)) {
+            RobotInfo robot = rc.senseRobotAtLocation(awayLoc);
+            if (robot == null) {
+                clearRubble(away);
+                return;
+            } else if (robot.team == myTeam && robot.zombieInfectedTurns == 0) {
+                Comm.sendMap(DISINTEGRATE, awayLoc);
+                runDir = away;
+                rc.setIndicatorString(1, "DESTROY HERE" + mapLocationToString(awayLoc));
+                return;
+            }
+
+            away = away.rotateLeft();
+            awayLoc = myLoc.add(away);
+            robot = rc.senseRobotAtLocation(awayLoc);
+            if (robot == null) {
+                clearRubble(away);
+                return;
+            } else if (robot.team == myTeam && robot.zombieInfectedTurns == 0) {
+                Comm.sendMap(DISINTEGRATE, awayLoc);
+                runDir = away;
+                rc.setIndicatorString(1, "DESTROY HERE" + mapLocationToString(awayLoc));
+                return;
+            }
+
+            away = away.rotateRight().rotateRight();
+            awayLoc = myLoc.add(away);
+            robot = rc.senseRobotAtLocation(awayLoc);
+            if (robot == null) {
+                clearRubble(away);
+            } else if (robot.team == myTeam && robot.zombieInfectedTurns == 0) {
+                Comm.sendMap(DISINTEGRATE, awayLoc);
+                runDir = away;
+                rc.setIndicatorString(1, "DESTROY HERE" + mapLocationToString(awayLoc));
+            }
+        }
     }
 
 

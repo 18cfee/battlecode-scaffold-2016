@@ -8,7 +8,7 @@ public class Global {
     public static final int ENEMY_ARCHON_LOCATION = 0xAB;
     public static final int HELP_ARCHON_AT_LOCATION = 0xAA;
     public static final int SCOUT_NEXT = 0xBB;
-    public static final int DISINEGRATE = 0xCC;
+    public static final int DISINTEGRATE = 0xCC;
     public static final int TURRET_SHOOT_HERE = 0xAC;
     public static final int FORM_UNIT_ON_ME = 0xEE;
     public static final int EMPTY = 0x00;
@@ -149,5 +149,36 @@ public class Global {
     public static String mapLocationToString(MapLocation loc) {
         return "X: "+loc.x+"Y: "+loc.y;
     }
+
+    public static boolean tryAttack(MapLocation target) throws GameActionException{
+        if (!rc.isWeaponReady())
+            return false;
+
+        if (!(target == null) && rc.canAttackLocation(target)) {
+            rc.attackLocation(target);
+            return true;
+        }
+
+        RobotInfo[] attackableHostiles = rc.senseHostileRobots(myLoc, myAttackRange);
+        if (attackableHostiles.length == 0) return false;
+
+        for (RobotInfo robot : attackableHostiles)
+            if (rc.canAttackLocation(robot.location)) {
+                rc.attackLocation(robot.location);
+                return true;
+            }
+
+        return false;
+    }
+
+    public static int isZombieAdj(){
+        for(int i = 0; i < visibleZombies.length; i++) {
+            if (myLoc.isAdjacentTo(visibleZombies[i].location))
+                return i;
+
+        }
+        return -1;
+    }
+
 
 }

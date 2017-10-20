@@ -5,39 +5,18 @@ import battlecode.common.*;
 public class Scout extends Global {
 
     public static void turn() throws GameActionException{
-        int minSD = 100;
-        int xShoot = -100;
-        int yShoot = -100;
-        int myX = rc.getLocation().x;
-        int myY = rc.getLocation().y;
+
+        MapLocation closest = null;
+        int closestDist = 1000;
         for(RobotInfo enemy : visibleHostiles) {
-            int x = enemy.location.x;
-            int y = enemy.location.y;
-            int dx = Math.abs(x - myX);
-            int dy = Math.abs(y - myY);
-            int cur = dx*dx + dy*dy;
-            if(cur < minSD){
-                minSD = cur;
-                xShoot = x;
-                yShoot = y;
+            int enemyDist = myLoc.distanceSquaredTo(enemy.location);
+            if(enemyDist < closestDist) {
+                closest = enemy.location;
+                closestDist = enemyDist;
             }
         }
-
-        for(RobotInfo enemy : visibleZombies) {
-            int x = enemy.location.x;
-            int y = enemy.location.y;
-            int dx = Math.abs(x - myX);
-            int dy = Math.abs(y - myY);
-            int cur = dx*dx + dy*dy;
-            if(cur < minSD){
-                minSD = cur;
-                xShoot = x;
-                yShoot = y;
-            }
-        }
-
-        if(xShoot != -100 && yShoot != -100) {
-            Comm.sendMsgXY(TURRET_SHOOT_HERE, xShoot, yShoot);
+        if(!(closest == null)) {
+            Comm.sendMap(TURRET_SHOOT_HERE, closest);
         }
 
         checkMessages();
@@ -63,12 +42,17 @@ public class Scout extends Global {
     public static void checkMessages() throws GameActionException{
         for(Signal message: signals) {
             if (Comm.readSig(message)) {
-                if (Comm.channel == SCOUT_NEXT) {
-                    if (Comm.loc.equals(myLoc) ) {
-                        iNeedToMove = true;
-                        rc.setIndicatorString(0,"Set iNeedToMove to true");
+                switch (Comm.channel) {
+                    case SCOUT_NEXT:
+                        if (Comm.loc.equals(myLoc)) {
+                            iNeedToMove = true;
+                            rc.setIndicatorString(0, "Set iNeedToMove to true");
+                        }
                         break;
-                    }
+                    case DISINTEGRATE:
+                        if (myLoc.equals(Comm.loc) && !rc.isInfected())
+                            rc.disintegrate();
+                        break;
                 }
             }
         }

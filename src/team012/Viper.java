@@ -11,8 +11,6 @@ public class Viper extends Global{
     public static void turn() throws GameActionException {
         rc.setIndicatorString(0, "I'm a viper!");
         if (rc.isCoreReady()) {
-            if (!Soldier.tryAttack())
-                Path.moveSomewhereOrLeft(Path.lastDirMoved);
 
         }
     }
