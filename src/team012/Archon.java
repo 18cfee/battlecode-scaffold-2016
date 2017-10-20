@@ -73,10 +73,10 @@ public class Archon extends Global {
             }
             // maybe ask about core being ready here instead of in these messages
             if(stage == 3) {
-                moveToScout();
+                boolean moved = moveToScout();
                 normSquareTurrets();
                 clearRubble();
-                readyMove();
+                readyMove(moved);
             }  else if(stage == 2) {
                 if(!checkedNeutUnitsHere) tryConvertNeutralConvenience();
                 placeInitialScout();
@@ -87,7 +87,7 @@ public class Archon extends Global {
     }
 
     static int archonMoved = 0;
-    static void moveToScout() throws GameActionException{
+    static boolean moveToScout() throws GameActionException{
         Direction moveTo = myLoc.directionTo(placedScoutLoc);
         if(rc.isCoreReady() && rc.canMove(moveTo)){
             rc.move(moveTo);
@@ -99,11 +99,13 @@ public class Archon extends Global {
                     break;
                 }
             }
+            return true;
         }
+        return false;
     }
 
-    static void readyMove() throws GameActionException{
-        if(roundNum%10 == 0){
+    static void readyMove(boolean moved) throws GameActionException{
+        if(roundNum%10 == 0 && !moved){
             Direction check = Direction.NORTH;
             boolean readyMove = true;
             for(int i = 0; i < 8; i++){
@@ -141,7 +143,19 @@ public class Archon extends Global {
         if(dx != 0 || dy != 0){
             camp = Path.convertXY(dx,dy).opposite();
         } else{
-            camp = Direction.NORTH;
+            // Place in the spot with the most rubble
+            Direction that = Direction.SOUTH_EAST; // changed to North-East for factory map
+            Direction low = null;
+            double min = 100000;
+            for (int i = 0; i < 8; i++) {
+                double rubAtSpot = Path.senseRubbleFixBug(that);
+                if (rc.canBuild(that, RobotType.SCOUT) && min > rubAtSpot && rubAtSpot > 49) {
+                    min = rubAtSpot;
+                    low = that;
+                }
+                that = that.rotateLeft();
+            }
+            camp = low;
         }
     }
 
@@ -193,6 +207,7 @@ public class Archon extends Global {
                     typeToBuild = RobotType.SCOUT;
                     archonMoved++;
                 }
+
                 if (rc.canBuild(current, typeToBuild)) {
                     rc.build(current, typeToBuild);
                     current = current.rotateLeft();
