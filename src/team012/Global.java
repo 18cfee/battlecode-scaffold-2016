@@ -150,5 +150,14 @@ public class Global {
         return "X: "+loc.x+"Y: "+loc.y;
     }
 
+    public static int isZombieAdj(){
+        for(int i = 0; i < visibleZombies.length; i++) {
+            if (myLoc.isAdjacentTo(visibleZombies[i].location))
+                return i;
+
+        }
+        return -1;
+    }
+
 
 }

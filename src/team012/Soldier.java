@@ -21,6 +21,13 @@ public class Soldier extends Global {
     private static void turn() throws GameActionException{
         int zombieAdj = isZombieAdj();
 
+        boolean didFire = false;
+        if (rc.isWeaponReady()) {
+            if (zombieAdj > -1)
+                didFire = tryAttack(visibleZombies[zombieAdj].location);
+            else
+                didFire = tryAttack(null);
+        }
 
         if(rc.isCoreReady()) {
             if (zombieAdj > -1)
@@ -28,19 +35,16 @@ public class Soldier extends Global {
             else if (healthLost > 0)
                 Path.runFromEnemies();
             else if (myLoc.distanceSquaredTo(ourArchonSpawns[0]) > 20){
-                Path.moveTo(ourArchonSpawns[0]);
+                if (!didFire)
+                    Path.moveTo(ourArchonSpawns[0]);
             }
         }
 
         if (rc.isCoreReady())
-            Path.moveRandom();
-
-        if (rc.isWeaponReady()) {
-            if (zombieAdj > -1)
-                tryAttack(visibleZombies[zombieAdj].location);
-            else
+            if (!didFire && visibleHostiles.length > 0) {
+                Path.moveTo(visibleHostiles[0].location);
                 tryAttack(null);
-        }
+            }
 
         if(rc.isCoreReady()) {
             clearRubble();
@@ -61,16 +65,6 @@ public class Soldier extends Global {
             Clock.yield();
         }
     }
-
-    public static int isZombieAdj(){
-        for(int i = 0; i < visibleZombies.length; i++) {
-            if (myLoc.isAdjacentTo(visibleZombies[i].location))
-                return i;
-
-        }
-        return -1;
-    }
-
 
     public static boolean tryAttack(MapLocation target) throws GameActionException{
         if (!(target == null) && rc.canAttackLocation(target)) {

@@ -9,7 +9,7 @@ public class Archon extends Global {
 
     static ArrayList<RobotType> buildList;
 
-    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
+    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, HOME}
     static Destination destination;
     static MapLocation destLoc;
     static MapLocation lastLoc;
@@ -131,9 +131,11 @@ public class Archon extends Global {
 
     static void HealAUnitInRange() throws GameActionException{
         for(RobotInfo robot: rc.senseNearbyRobots(myAttackRange, myTeam)){
-            if(robot.health < robot.type.maxHealth){
-                rc.repair(robot.location);
-                break;
+            if(robot.type != RobotType.ARCHON) {
+                if (robot.health < robot.type.maxHealth) {
+                    rc.repair(robot.location);
+                    break;
+                }
             }
         }
     }
@@ -315,46 +317,75 @@ public class Archon extends Global {
     private static int cooldown;
 
     private static void roam() throws GameActionException {
+        int zombieAdj = isZombieAdj();
+
+        RobotInfo[] adjNeutral = rc.senseNearbyRobots(1, Team.NEUTRAL);
+        if (adjNeutral.length > 0)
+            tryConvertNeutral();
 
         rc.setIndicatorLine(destLoc, rc.getLocation(), 255, 0, 0);
         if (rc.isCoreReady()) {
                 if (destination == Destination.STUCK) {
                     if (cooldown++ < 13)
-                        if (!Path.runFromEnemies())
-                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
+                        if (zombieAdj > -1)
+                            Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                        else
+                            Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
                     else
                         destination = Destination.NONE;
+
+                }
+                if (destination == Destination.HOME && myLoc.distanceSquaredTo(destLoc) < 20) {
+                    destination = Destination.STUCK;
                 }
 
-                if (destination == Destination.NONE && !scanForNearNeutral()) {
-                    /*if (roamingAllowedToBuild() && !Path.canEnemyAttack(myLoc))
-                        tryBuildAnyDir(Path.awayEnemyDirection.opposite(), RobotType.SOLDIER);
-                    else if (healthLost > 5)*/ ///////FixLater//////
-                        if (!Path.runFromEnemies())
-                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
-                } else {
-                    if (getOutnumberFactor() > 2)
-                        if (!Path.runFromEnemies())
-                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
+                if (destination == Destination.NONE ) {
+                    scanForNearNeutral();
+                }
 
-                    if (!tryConvertNeutral())
-                        if (!Path.moveSafeTo(destLoc)) {
-                            Path.moveTo(destLoc);
-                            if (lastLoc == rc.getLocation()) {
-                                if (myLoc.distanceSquaredTo(destLoc) < 4 &&
-                                        rc.senseRubble(Path.getLocAt(myLoc.directionTo(destLoc),myLoc)) < 100)
-                                    clearRubble(myLoc.directionTo(destLoc));
-                            } else {
-                                destination = Destination.STUCK;
-                                Path.lastDirMoved = rc.getLocation().directionTo(destLoc).opposite();
-                                cooldown = 0;
-                            }
 
+                if (rc.isCoreReady()){
+                    if (zombieAdj > -1) {
+                        Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                    } else if (destination != Destination.STUCK || destination != Destination.NONE){
+                        if (healthLost > 10)
+                            Path.runFromEnemies();
+                        else if(!Path.moveTo(destLoc)) {
+                            destination = Destination.STUCK;
+                            cooldown = 0;
+                            Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
                         }
-
+                    } else if (roundNum % 300 == 0) {
+                        destination = Destination.HOME;
+                        destLoc = ourArchonSpawns[0];
+                        Path.moveTo(destLoc);
+                    } else if (healthLost > 0){
+                        if (roundNum % 3 <  1)
+                            Path.runFromEnemies();
+                        else {
+                            if (visibleHostiles.length > 0)
+                                Path.tryMoveDir(visibleHostiles[0].location.directionTo(myLoc));
+                        }
+                    }
                 }
 
+                if (rc.isCoreReady()) {
+                    if (zombieAdj > -1 && !Path.moveRandom()) {
+                        MapLocation desire = myLoc.add(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                        if (rc.onTheMap(desire)) {
+                            Direction awayDir = myLoc.directionTo(desire);
+                            if (rc.canMove(awayDir))
+                                rc.move(awayDir);
+                            else
+                                clearRubble(awayDir);
+                        }
+                    } else {
+                        Path.moveRandom();
+                    }
+                }
+            rc.setIndicatorString(2 , destination.toString());
         }
+
         if (rc.isCoreReady())
             if (!Path.moveRandom())
                 Path.moveSomewhereOrLeft(Path.lastDirMoved);
@@ -453,20 +484,5 @@ public class Archon extends Global {
             }
         }
     }
-
-    static boolean isZombieAdjacent() {
-        RobotInfo[] hostiles = rc.senseHostileRobots(myLoc,1);
-        for (RobotInfo robot : hostiles) {
-            if (robot.team == Team.ZOMBIE)
-                return true;
-        }
-        return false;
-    }
-
-
-
-
-
-
 
 }
