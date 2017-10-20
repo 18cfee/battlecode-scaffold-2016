@@ -8,14 +8,9 @@ import java.util.Random;
 public class Soldier extends Global {
 
     static Direction movDir;
-    public static final double SOLDIER_HP = 60f;
-
-    private static boolean IS_GROUPED;
-    private static int groupLeaderID;
 
     private enum State {CAMP_ARCHON, EXPLORE}
     private static State state;
-
 
     public static void init() {
 
@@ -24,38 +19,27 @@ public class Soldier extends Global {
     }
 
     private static void turn() throws GameActionException{
+        int zombieAdj = isZombieAdj();
+
 
         if(rc.isCoreReady()) {
-            if (enemyRatio < 0.8f) {
-                if (visibleHostiles.length == 0) {
-                    // explore or some SHIT!!!
-                    Path.moveRandom();
-                } else {
-                    Direction enemyVector = myLoc.directionTo(Path.getAverageLoc(visibleHostiles));
-                    if (healthLost < 6)
-                        if (!tryAttack())
-                            Path.runToAllies();
-                        else {
-                            Path.runToAllies();
-                        }
-                }
-                // we outnumbered almost 2-1
-            } else if (enemyRatio > 1.8f) {
-                if (!Path.runFromEnemies());
-                    tryAttack();
-            } else {
-                if (healthLost < 6) {
-                    if (!tryAttack())
-                        if (roundNum % 3 == 0)
-                            if (visibleAllies.length < 1)
-                                Path.runFromEnemies();
-                            else
-                                Path.runToAllies();
-                } else {
-                    if (!Path.runFromEnemies())
-                        tryAttack();
-                }
+            if (zombieAdj > -1)
+                Path.moveTo(myLoc.add(myLoc.directionTo(visibleZombies[zombieAdj].location).opposite()));
+            else if (healthLost > 0)
+                Path.runFromEnemies();
+            else if (myLoc.distanceSquaredTo(ourArchonSpawns[0]) > 20){
+                Path.moveTo(ourArchonSpawns[0]);
             }
+        }
+
+        if (rc.isCoreReady())
+            Path.moveRandom();
+
+        if (rc.isWeaponReady()) {
+            if (zombieAdj > -1)
+                tryAttack(visibleZombies[zombieAdj].location);
+            else
+                tryAttack(null);
         }
 
         if(rc.isCoreReady()) {
@@ -78,66 +62,32 @@ public class Soldier extends Global {
         }
     }
 
-    public static boolean tryAttack() throws GameActionException{
-        if (!rc.isWeaponReady()) return false;
+    public static int isZombieAdj(){
+        for(int i = 0; i < visibleZombies.length; i++) {
+            if (myLoc.isAdjacentTo(visibleZombies[i].location))
+                return i;
+
+        }
+        return -1;
+    }
+
+
+    public static boolean tryAttack(MapLocation target) throws GameActionException{
+        if (!(target == null) && rc.canAttackLocation(target)) {
+            rc.attackLocation(target);
+            return true;
+        }
+
         RobotInfo[] attackableHostiles = rc.senseHostileRobots(myLoc, myAttackRange);
         if (attackableHostiles.length == 0) return false;
 
-        RobotInfo bestTarget = chooseBestTarget(attackableHostiles);
-        if (rc.canAttackLocation(bestTarget.location)) {
-            rc.attackLocation(bestTarget.location);
-            return true;
-        }
+        for (RobotInfo robot : attackableHostiles)
+            if (rc.canAttackLocation(robot.location)) {
+                rc.attackLocation(robot.location);
+                return true;
+            }
+
         return false;
-    }
-
-    // DOES NOT CHECK IF ARR IS EMPTY
-    public static RobotInfo chooseBestTarget(RobotInfo[] robots) {
-
-        int bestIdx = 0;
-        double bestWeight = 0;
-        for(int i = 0; i < Math.min(robots.length, 15); i++){
-            if (getTargetWeight(robots[i]) > bestWeight)
-                bestIdx = i;
-        }
-        return robots[bestIdx];
-    }
-
-    public static double getTargetWeight(RobotInfo robot) {
-        switch (robot.type) {
-            case ARCHON:
-                return robot.health < myAttackPower ? 1000f : 0.2f;
-            case SOLDIER:
-                if (robot.zombieInfectedTurns > 0)
-                    return robot.health < myAttackPower ? 0.7f : 0.6f;
-                else
-                    return robot.health < myAttackPower ? 0.6f : 0.5f;
-            case FASTZOMBIE:
-                return robot.health < myAttackPower ? 0.8f : 0.6f;
-            case RANGEDZOMBIE:
-                return robot.health < myAttackPower ? 0.7f : 1f;
-            case BIGZOMBIE:
-                return robot.health < myAttackPower ? 3f : 0.4f;
-            case STANDARDZOMBIE:
-                return robot.health < myAttackPower ? 0.65f : 0.55f;
-            case ZOMBIEDEN:
-                return robot.health < myAttackPower ? 2f : 0.2f;
-            case VIPER:
-                return robot.health < myAttackPower ? 3f : 1.2f;
-            case GUARD:
-                return robot.health < myAttackPower ? 0.33f : 0.05f;
-            case SCOUT:
-                if (robot.zombieInfectedTurns > 0)
-                    return robot.health < myAttackPower ? 0.35f : 0.3f;
-                else
-                    return robot.health < myAttackPower ? 0.25f : 0.1f;
-            case TURRET:
-                return robot.health < myAttackPower ? 1.1f : 1f;
-            case TTM:
-                return robot.health < myAttackPower ? 0.6f : 0.5f;
-            default:
-                return .01;
-        }
     }
 
     public static void getSignals(){
