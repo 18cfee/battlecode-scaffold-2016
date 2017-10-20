@@ -186,6 +186,7 @@ public class Archon extends Global {
 
     static Direction current;
     static RobotType typeToBuild = RobotType.TURRET;
+    static int numBuilt = 0;
     private static void normSquareTurrets() throws GameActionException{
         if (rc.isCoreReady() && (rc.hasBuildRequirements(typeToBuild))) {
             for (int i = 0; i < 8; i++) {
@@ -193,11 +194,14 @@ public class Archon extends Global {
                     typeToBuild = RobotType.SCOUT;
                     archonMoved++;
                 }
-
+                if(typeToBuild != RobotType.SCOUT && numBuilt%8 == 7){
+                    typeToBuild = RobotType.GUARD;
+                }
                 if (rc.canBuild(current, typeToBuild)) {
                     rc.build(current, typeToBuild);
                     current = current.rotateLeft();
                     typeToBuild = RobotType.TURRET;
+                    numBuilt++;
                     break;
                 } else {
                     current = current.rotateLeft();
