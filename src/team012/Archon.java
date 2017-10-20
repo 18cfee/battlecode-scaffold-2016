@@ -9,7 +9,7 @@ public class Archon extends Global {
 
     static ArrayList<RobotType> buildList;
 
-    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
+    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, HOME, CAMP, SHIT_IF_I_KNOW}
     static Destination destination;
     static MapLocation destLoc;
     static MapLocation lastLoc;
@@ -46,7 +46,6 @@ public class Archon extends Global {
     //      3   ||  Place First Turret Cluster
     public static void turn() throws GameActionException{
         if (archonId != 0) {
-            rc.setIndicatorString(2,"I am trying to roam: ");
             roam();
         } else {
             HealAUnitInRange();
@@ -345,7 +344,12 @@ public class Archon extends Global {
     private static int cooldown;
     private static Direction runDir = null;
     private static boolean abandoningBase = false;
+
+    static boolean goneHomeForLowHp = false;
+    static int campArchonId = 0;
+
     private static void roam() throws GameActionException {
+
         int zombieAdj = isZombieAdj();
 
         if(abandoningBase && rc.isCoreReady()) {
@@ -368,6 +372,8 @@ public class Archon extends Global {
                 if (cooldown++ < 13)
                     if (zombieAdj > -1)
                         Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                    else if (healthLost > 5)
+                        Path.runFromEnemies();
                     else {
                         if (cooldown < 5)
                             Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
@@ -379,17 +385,81 @@ public class Archon extends Global {
 
             }
 
-            if (destination == Destination.NONE ) {
-                scanForNearNeutral();
+            if (destination == Destination.HOME && myLoc.distanceSquaredTo(destLoc) < 20) {
+                destination = Destination.CAMP;
+            }
+
+            if (destination == Destination.CAMP) {
+                RobotInfo campArchon = getArchonFromVisible(campArchonId);
+                if (campArchon == null)
+                    destination = Destination.NONE;
+                else
+                    destLoc = campArchon.location;
+
+                if (getOutnumberFactor() > 2f)
+                    destination = Destination.NONE;
+
+                if (myLoc.distanceSquaredTo(destLoc) > 30) {
+                    if (healthLost > 3)
+                        Path.runFromEnemies();
+                    else
+                        Path.moveSafeTo(destLoc);
+
+                    if (rc.isCoreReady()){
+                        Path.moveTo(destLoc);
+                    }
+                } else {
+                    if (healthLost > 0)
+                        Path.runFromEnemies();
+                    else {
+                        Path.moveTo(destLoc);
+                    }
+                }
             }
 
             if (rc.isCoreReady()) {
                 if (zombieAdj > -1) {
                     Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                } else if (destination == Destination.CAMP) {
+                    RobotInfo campArchon = getArchonFromVisible(campArchonId);
+                    if (campArchon == null)
+                        destination = Destination.NONE;
+                    else
+                        destLoc = campArchon.location;
+
+                    if (getOutnumberFactor() > 2f)
+                        destination = Destination.NONE;
+
+                    if (myLoc.distanceSquaredTo(destLoc) > 30) {
+                        if (healthLost > 3)
+                            Path.runFromEnemies();
+                        else
+                            Path.moveSafeTo(destLoc);
+
+                        if (rc.isCoreReady()){
+                            Path.moveTo(destLoc);
+                        }
+                    } else {
+                        if (healthLost > 0)
+                            Path.runFromEnemies();
+                        else {
+                            Path.moveTo(destLoc);
+                        }
+                    }
+                } else if (destination == Destination.NONE ) {
+                    if (!goneHomeForLowHp && myHp < 450) {
+                        goneHomeForLowHp = true;
+                        destination = Destination.HOME;
+                        destLoc = ourArchonSpawns[0];
+                    } else if (roundNum % 500 > 450) {
+                        destination = Destination.HOME;
+                        destLoc = ourArchonSpawns[0];
+                    }
+                    scanForNearNeutral();
                 } else if (destination != Destination.STUCK || destination != Destination.NONE) {
-                    if (healthLost > 5)
+                    if (healthLost > 3)
                         Path.runFromEnemies();
-                    else if ((!Path.moveSafeTo(destLoc))&& (!Path.moveTo(destLoc))) {
+                    else if ((!Path.moveSafeTo(destLoc)) && (!Path.moveTo(destLoc))) {
                         destination = Destination.STUCK;
                         cooldown = 0;
                         Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
@@ -411,12 +481,13 @@ public class Archon extends Global {
                         }
                     }
                 } else {
-                    if (roundNum % 3 < 2)
+                    if (rc.isCoreReady() && roundNum > 400 && rc.getTeamParts() > 150 && canBuy(RobotType.SOLDIER))
+                        tryBuildAnyDir(myLoc.directionTo(destLoc).opposite(), RobotType.SOLDIER);
+                    if (rc.isCoreReady())
                         Path.moveRandom();
                 }
             }
             rc.setIndicatorString(2, destination.toString());
-
 
             boolean didHeal = false;
             if (rc.isWeaponReady() && visibleAllies.length > 0)
@@ -431,6 +502,13 @@ public class Archon extends Global {
         }
     }
 
+    public static RobotInfo getArchonFromVisible(int id) {
+        for (RobotInfo robot : visibleAllies)
+            if (robot.type == RobotType.ARCHON && robot.ID == id)
+                return robot;
+
+        return null;
+    }
 
     public boolean buildFromList(Direction dir) throws GameActionException {
         if (buildList.isEmpty()) {

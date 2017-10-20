@@ -34,7 +34,7 @@ public class Soldier extends Global {
                 Path.moveTo(myLoc.add(myLoc.directionTo(visibleZombies[zombieAdj].location).opposite()));
             else if (healthLost > 0)
                 Path.runFromEnemies();
-            else if (myLoc.distanceSquaredTo(ourArchonSpawns[0]) > 20){
+            else if (myLoc.distanceSquaredTo(ourArchonSpawns[0]) > 25){
                 if (!didFire)
                     Path.moveTo(ourArchonSpawns[0]);
             }
