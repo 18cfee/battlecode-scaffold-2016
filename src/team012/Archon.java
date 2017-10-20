@@ -156,8 +156,8 @@ public class Archon extends Global {
             camp = Path.convertXY(dx,dy).opposite();
         } else{
             // Place in the spot with the most rubble
-            Direction that = Direction.SOUTH_EAST; // changed to North-East for factory map
-            Direction low = Direction.SOUTH_EAST;
+            Direction that = Direction.EAST; // changed to North-East for factory map
+            Direction low = Direction.EAST;
             double min = 100000;
             for (int i = 0; i < 8; i++) {
                 double rubAtSpot = Path.senseRubbleFixBug(that);
