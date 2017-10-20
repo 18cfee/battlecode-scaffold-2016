@@ -81,6 +81,7 @@ public class Archon extends Global {
                 if(ally.ID == placedScoutId){
                     placedScoutLoc = ally.location;
                     archonMoved++;
+                    roundsGaurdsSeen = 0;
                     break;
                 }
             }
@@ -89,21 +90,32 @@ public class Archon extends Global {
         return false;
     }
 
+    static int roundsGaurdsSeen = 0;
     static void readyMove(boolean moved) throws GameActionException{
         if(roundNum%10 == 0 && !moved){
+            rc.setIndicatorString(2,String.valueOf(roundsGaurdsSeen));
             Direction check = Direction.NORTH;
             boolean readyMove = true;
+            boolean seenGuard = false;
             for(int i = 0; i < 8; i++){
                 MapLocation locToCheck = Path.getLocAt(check,myLoc);
                 if(rc.onTheMap(locToCheck) && (500 > (Path.senseRubbleFixBug(check)))){
                     RobotInfo atSpot = rc.senseRobotAtLocation(locToCheck);
-                    if(null == atSpot || atSpot.team.equals(Team.ZOMBIE) || atSpot.team.equals(enemyTeam))
+                    if(!(null == atSpot) && atSpot.type == RobotType.GUARD){
+                        seenGuard = true;
+                    }
+                    if(null == atSpot || atSpot.team.equals(Team.ZOMBIE) || atSpot.team.equals(enemyTeam) || (atSpot.type == RobotType.GUARD && roundsGaurdsSeen < 2))
                     {
                         readyMove = false;
                         break;
                     }
                 }
                 check = check.rotateLeft();
+            }
+            if(seenGuard){
+                roundsGaurdsSeen++;
+            }else{
+                roundsGaurdsSeen = 0;
             }
             if(readyMove){
                 // Maybe Send only to a scout with a certain ID
