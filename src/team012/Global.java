@@ -159,5 +159,26 @@ public class Global {
         return -1;
     }
 
+    public static boolean tryAttack(MapLocation target) throws GameActionException{
+        if (!rc.isWeaponReady())
+            return false;
+
+        if (!(target == null) && rc.canAttackLocation(target)) {
+            rc.attackLocation(target);
+            return true;
+        }
+
+        RobotInfo[] attackableHostiles = rc.senseHostileRobots(myLoc, myAttackRange);
+        if (attackableHostiles.length == 0) return false;
+
+        for (RobotInfo robot : attackableHostiles)
+            if (rc.canAttackLocation(robot.location)) {
+                rc.attackLocation(robot.location);
+                return true;
+            }
+
+        return false;
+    }
+
 
 }

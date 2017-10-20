@@ -17,10 +17,24 @@ public class Guard extends Global {
     private static MapLocation patrolLoc = myLoc;
     private static boolean didPatrol = false;
     private static int intMoving = 0;
+    private static boolean notInit = true;
 
     public static void turn() throws GameActionException {
         if(rc.isCoreReady()) {
-            if(roundNum == spawnRound){
+            if (myLoc.distanceSquaredTo(ourArchonSpawns[0]) > 24) {
+                int zombieAdj = isZombieAdj();
+                if (zombieAdj > -1) {
+                    if (!Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc)))
+                        Path.moveRandom();
+                } else {
+                    Path.moveTo(ourArchonSpawns[0]);
+                }
+
+                if (rc.isCoreReady())
+                    clearRubble(myLoc.directionTo(ourArchonSpawns[0]));
+
+            } else if(notInit){
+                notInit = false;
                 for (RobotInfo ally : Global.visibleAllies) {
                     if (ally.type == RobotType.ARCHON) {
                         if (ally.location.distanceSquaredTo(myLoc) < 5) {
@@ -88,6 +102,9 @@ public class Guard extends Global {
                 }
             }
         }
+
+        if(rc.isWeaponReady())
+            tryAttack(null);
     }
 
 

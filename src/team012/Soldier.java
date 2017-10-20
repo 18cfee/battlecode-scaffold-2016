@@ -66,24 +66,6 @@ public class Soldier extends Global {
         }
     }
 
-    public static boolean tryAttack(MapLocation target) throws GameActionException{
-        if (!(target == null) && rc.canAttackLocation(target)) {
-            rc.attackLocation(target);
-            return true;
-        }
-
-        RobotInfo[] attackableHostiles = rc.senseHostileRobots(myLoc, myAttackRange);
-        if (attackableHostiles.length == 0) return false;
-
-        for (RobotInfo robot : attackableHostiles)
-            if (rc.canAttackLocation(robot.location)) {
-                rc.attackLocation(robot.location);
-                return true;
-            }
-
-        return false;
-    }
-
     public static void getSignals(){
         for(Signal s : signals) {
             if (s.getTeam() == myTeam) {

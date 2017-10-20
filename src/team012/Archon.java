@@ -329,8 +329,12 @@ public class Archon extends Global {
                     if (cooldown++ < 13)
                         if (zombieAdj > -1)
                             Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
-                        else
-                            Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
+                        else {
+                            if (cooldown < 5)
+                                Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
+                            else
+                                Path.moveSomewhereOrLeft(Path.lastDirMoved);
+                        }
                     else
                         destination = Destination.NONE;
 
@@ -355,9 +359,9 @@ public class Archon extends Global {
                             cooldown = 0;
                             Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
                         }
-                    } else if (roundNum % 300 == 0) {
+                    } else if (roundNum % 600 == 0) {
                         destination = Destination.HOME;
-                        destLoc = ourArchonSpawns[0];
+                        destLoc = ourArchonSpawns[archonId];
                         Path.moveTo(destLoc);
                     } else if (healthLost > 0){
                         if (roundNum % 3 <  1)
@@ -374,13 +378,16 @@ public class Archon extends Global {
                         MapLocation desire = myLoc.add(visibleZombies[zombieAdj].location.directionTo(myLoc));
                         if (rc.onTheMap(desire)) {
                             Direction awayDir = myLoc.directionTo(desire);
-                            if (rc.canMove(awayDir))
+                            if (rc.canMove(awayDir) && rc.isCoreReady())
                                 rc.move(awayDir);
                             else
                                 clearRubble(awayDir);
                         }
                     } else {
-                        Path.moveRandom();
+                        if (roundNum % 3 < 2)
+                            Path.moveRandom();
+                        else
+                            Path.moveSomewhereOrLeft(Path.lastDirMoved);
                     }
                 }
             rc.setIndicatorString(2 , destination.toString());
