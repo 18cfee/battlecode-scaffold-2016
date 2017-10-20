@@ -9,7 +9,7 @@ public class Archon extends Global {
 
     static ArrayList<RobotType> buildList;
 
-    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, SHIT_IF_I_KNOW}
+    enum Destination {NONE, ENEMY_ARCHON, NEUTRAL_ARCHON, NEUTRAL_UNIT, STUCK, HOME, SHIT_IF_I_KNOW}
     static Destination destination;
     static MapLocation destLoc;
     static MapLocation lastLoc;
@@ -50,7 +50,7 @@ public class Archon extends Global {
             roam();
         } else {
             HealAUnitInRange();
-            if (getOutnumberFactor() > 2.5f && stage == 3) {
+            if (healthLost > 25 || healthLost > 5 && myHp < 200 ||getOutnumberFactor() > 2.5f && stage == 3) {
                 runaway();
                 archonId = -1;
                 return;
@@ -396,12 +396,32 @@ public class Archon extends Global {
             }
 
             if (destination == Destination.NONE ) {
-                scanForNearNeutral();
+                if (roundNum < 300 && myHp > 900) {
+                    scanForNearNeutral();
+                } else {
+                    destination = Destination.HOME;
+                    destLoc = ourArchonSpawns[0].add(ourArchonSpawns[0].directionTo(theirArchonSpawns[0]).opposite(), 5);
+                }
             }
 
             if (rc.isCoreReady()) {
                 if (zombieAdj > -1) {
                     Path.tryMoveDir(visibleZombies[zombieAdj].location.directionTo(myLoc));
+                } else if (destination == Destination.HOME) {
+                        if (myLoc.distanceSquaredTo(destLoc) < 10) {
+                            if(healthLost > 0) {
+                                Path.runToAllies();
+                            } else {
+                                if (rc.isCoreReady() && roundNum > 400 && rc.getTeamParts() > 200 && canBuy(RobotType.SOLDIER))
+                                    tryBuildAnyDir(myLoc.directionTo(destLoc).opposite(), RobotType.SOLDIER);
+                            }
+                        } else if (healthLost > 5)
+                            Path.runFromEnemies();
+                        else if ((!Path.moveSafeTo(destLoc))&& (!Path.moveTo(destLoc))) {
+                            destination = Destination.STUCK;
+                            cooldown = 0;
+                            Path.tryMoveDir(myLoc.directionTo(destLoc).opposite());
+                        }
                 } else if (destination != Destination.STUCK || destination != Destination.NONE) {
                     if (healthLost > 5)
                         Path.runFromEnemies();
