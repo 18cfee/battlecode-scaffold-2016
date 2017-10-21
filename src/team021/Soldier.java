@@ -1,9 +1,9 @@
-package team012;
+package team021;
 
-import battlecode.common.*;
-
-import java.util.Map;
-import java.util.Random;
+import battlecode.common.Clock;
+import battlecode.common.Direction;
+import battlecode.common.GameActionException;
+import battlecode.common.Signal;
 
 public class Soldier extends Global {
 
